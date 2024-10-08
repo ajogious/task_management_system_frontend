@@ -9,36 +9,37 @@ const EditItem = () => {
   const [taskName, setTaskName] = useState("");
   const [taskDescription, setTaskDescription] = useState("");
   const [username, setUsername] = useState("");
-  const [userId, setUserId] = useState(""); // Add state for userId
+  const [userId, setUserId] = useState("");
   const [message, setMessage] = useState("");
+  const [avatar, setAvatar] = useState(null);
   const [alertType, setAlertType] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     const storedUsername = localStorage.getItem("username");
-    const storedUserId = localStorage.getItem("userId"); // Get userId from localStorage
+    const storedUserId = localStorage.getItem("userId");
+    const avatarIcon = localStorage.getItem("icon");
+
     if (storedUsername && storedUserId) {
       setUsername(storedUsername);
-      setUserId(storedUserId); // Set userId in state
+      setUserId(storedUserId);
+      setAvatar(avatarIcon);
     } else {
       navigate("/"); // Redirect if not authenticated
+      return;
     }
 
     const fetchItem = async () => {
       try {
-        console.log(`Fetching task with ID: ${id}`);
-        const response = await axios.get(
+        const { data } = await axios.get(
           `http://localhost:8080/api/tasks/task/${id}`
         );
-        console.log("Task data fetched:", response.data);
-        setTaskName(response.data.taskName || "");
-        setTaskDescription(response.data.taskDescription || "");
-        setIsLoading(false);
+        setTaskName(data.taskName || "");
+        setTaskDescription(data.taskDescription || "");
       } catch (error) {
-        console.error("Error fetching item:", error);
-        setAlertType("danger");
-        setMessage("Error fetching item.");
+        displayMessage("danger", "Error fetching item.");
+      } finally {
         setIsLoading(false);
       }
     };
@@ -47,8 +48,7 @@ const EditItem = () => {
   }, [id, navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem("username");
-    localStorage.removeItem("userId");
+    localStorage.clear(); // Wipe everything from localStorage
     navigate("/");
   };
 
@@ -58,29 +58,30 @@ const EditItem = () => {
       await axios.put(`http://localhost:8080/api/tasks/update/${id}`, {
         taskName,
         taskDescription,
-        user: { id: userId }, // Pass the userId
+        user: { id: userId },
       });
-      setAlertType("success");
-      setMessage("Task updated successfully");
-
-      setTimeout(() => {
-        setMessage("");
-        setAlertType("");
-      }, 3000);
+      displayMessage("success", "Task updated successfully");
     } catch (error) {
-      setAlertType("danger");
-      setMessage("Failed to update task.");
-
-      setTimeout(() => {
-        setMessage("");
-        setAlertType("");
-      }, 3000);
+      displayMessage("danger", "Failed to update task.");
     }
+  };
+
+  const displayMessage = (type, messageText) => {
+    setAlertType(type);
+    setMessage(messageText);
+    setTimeout(() => {
+      setMessage("");
+      setAlertType("");
+    }, 3000);
   };
 
   return (
     <>
-      <Navbar username={username} handleLogout={handleLogout} />
+      <Navbar
+        username={username}
+        userIcon={avatar}
+        handleLogout={handleLogout}
+      />
       <div
         className="container col-lg-6 col-md-8 col-10 d-flex flex-column justify-content-center"
         style={{ marginTop: "135px" }}

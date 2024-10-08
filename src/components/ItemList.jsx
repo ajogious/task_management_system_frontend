@@ -11,15 +11,18 @@ const ItemList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
   const [searchTerm, setSearchTerm] = useState("");
+  const [avatar, setAvatar] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchItems = async () => {
       const userId = localStorage.getItem("userId");
       const storedUsername = localStorage.getItem("username");
+      const avatarIcon = localStorage.getItem("icon");
 
       if (storedUsername && userId) {
         setUsername(storedUsername);
+        setAvatar(avatarIcon);
       } else if (!userId) {
         setError("User not logged in or userId not found.");
         return;
@@ -68,7 +71,11 @@ const ItemList = () => {
 
   return (
     <>
-      <Navbar username={username} handleLogout={handleLogout} />
+      <Navbar
+        username={username}
+        userIcon={avatar}
+        handleLogout={handleLogout}
+      />
       <div
         className="container col-lg-10 col-md-9 d-flex flex-column justify-content-center"
         style={{ marginTop: "135px" }}

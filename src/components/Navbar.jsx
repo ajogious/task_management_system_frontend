@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
-const Navbar = ({ username, handleLogout }) => {
+const Navbar = ({ username, userIcon, handleLogout }) => {
   const [showWelcomeMessage, setShowWelcomeMessage] = useState(false);
 
   useEffect(() => {
@@ -13,7 +13,7 @@ const Navbar = ({ username, handleLogout }) => {
   }, [username]);
 
   const handleLogoutClick = () => {
-    handleLogout();
+    if (handleLogout) handleLogout();
   };
 
   return (
@@ -21,15 +21,27 @@ const Navbar = ({ username, handleLogout }) => {
       <div className="container">
         {/* Brand and Home Link */}
         <div className="d-flex justify-content-start align-items-center">
+          {username && showWelcomeMessage && (
+            <div
+              className="image-avatar me-2"
+              style={{
+                width: "50px",
+                height: "50px",
+                borderRadius: "50%",
+                overflow: "hidden",
+                border: "2px solid grey",
+              }}
+            >
+              {/* Display the user's avatar */}
+              <img
+                src={`http://localhost:8080${userIcon}`}
+                alt="User Avatar"
+                className="img-fluid"
+              />
+            </div>
+          )}
           <Link className="navbar-brand" to="/userpage">
             <strong className="h2">Task Manager</strong>
-          </Link>
-          <Link
-            className="pt-1 text-secondary"
-            to="/userpage"
-            style={{ textDecoration: "none" }}
-          >
-            Home Page
           </Link>
         </div>
 
@@ -52,7 +64,9 @@ const Navbar = ({ username, handleLogout }) => {
             {username && showWelcomeMessage && (
               <>
                 <li className="nav-item">
-                  <span className="nav-link">Welcome, {username}</span>
+                  <a href="/userpage" className="nav-link">
+                    Home Page
+                  </a>
                 </li>
                 <li className="nav-item">
                   <button

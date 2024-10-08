@@ -7,15 +7,18 @@ import dayjs from "dayjs";
 const UserPage = () => {
   const [username, setUsername] = useState("");
   const [created, setCreated] = useState("");
+  const [avatar, setAvatar] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     // Retrieve username from localStorage
     const storedUsername = localStorage.getItem("username");
-    const accCreated = localStorage.getItem("createdAt");
+    const accCreated = localStorage.getItem("created");
+    const avatarIcon = localStorage.getItem("icon");
     if (storedUsername) {
       setUsername(storedUsername);
       setCreated(accCreated);
+      setAvatar(avatarIcon);
     } else {
       navigate("/"); // Redirect to login if not logged in
     }
@@ -24,7 +27,9 @@ const UserPage = () => {
   const handleLogout = () => {
     // Clear localStorage to log out the user
     localStorage.removeItem("username");
-    localStorage.removeItem("accCreated");
+    localStorage.removeItem("created");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("icon");
     navigate("/"); // Redirect to login page
   };
 
@@ -34,7 +39,11 @@ const UserPage = () => {
 
   return (
     <>
-      <Navbar username={username} handleLogout={handleLogout} />
+      <Navbar
+        username={username}
+        userIcon={avatar}
+        handleLogout={handleLogout}
+      />
       <div
         className="container col-lg-6 col-md-8 col-10 d-flex flex-column justify-content-center"
         style={{ marginTop: "140px" }}

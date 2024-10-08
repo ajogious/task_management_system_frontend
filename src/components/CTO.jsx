@@ -4,12 +4,8 @@ import { useNavigate } from "react-router-dom";
 const CTO = () => {
   const navigate = useNavigate();
 
-  const handleViewTasks = () => {
-    navigate("/tasks");
-  };
-
   return (
-    <button className="btn btn-secondary" onClick={handleViewTasks}>
+    <button className="btn btn-secondary" onClick={() => navigate("/tasks")}>
       View All Tasks
     </button>
   );

@@ -17,6 +17,7 @@ const Login = () => {
         "http://localhost:8080/api/auth/login",
         { email, password }
       );
+      console.log(response.data);
 
       if (response.data.message === "Login successful") {
         setAlertType("success");
@@ -26,6 +27,7 @@ const Login = () => {
         localStorage.setItem("username", response.data.username);
         localStorage.setItem("userId", response.data.userId);
         localStorage.setItem("created", response.data.createdAt);
+        localStorage.setItem("icon", response.data.avatar_url);
 
         // Redirect to user profile page after login
         setTimeout(() => {
@@ -53,7 +55,11 @@ const Login = () => {
 
   return (
     <>
-      <Navbar />
+      {/* Retrieve avatar and username for Navbar */}
+      <Navbar
+        username={localStorage.getItem("username")}
+        userIcon={localStorage.getItem("icon")}
+      />
       <div
         className="container col-lg-6 col-md-8 col-10 d-flex flex-column justify-content-center"
         style={{ marginTop: "100px" }}

@@ -6,20 +6,29 @@ const Register = () => {
   const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
+  const [avatar, setAvatar] = useState(null);
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [alertType, setAlertType] = useState("");
 
   const handleRegister = async (e) => {
     e.preventDefault();
+
+    const formData = new FormData();
+    formData.append("fullName", fullName);
+    formData.append("username", username);
+    formData.append("email", email);
+    formData.append("avatar", avatar);
+    formData.append("password", password);
+
     try {
       const response = await axios.post(
         "http://localhost:8080/api/auth/register",
+        formData,
         {
-          fullName,
-          username,
-          email,
-          password,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         }
       );
 
@@ -39,7 +48,7 @@ const Register = () => {
       }, 3000);
     } catch (error) {
       setAlertType("danger");
-      setMessage(error.response?.data?.message || "Registration failed.");
+      setMessage(error.response?.data || "Registration failed.");
 
       setTimeout(() => {
         setMessage("");
@@ -50,6 +59,7 @@ const Register = () => {
     setFullName("");
     setUsername("");
     setEmail("");
+    setAvatar(null);
     setPassword("");
   };
 
@@ -61,7 +71,7 @@ const Register = () => {
         style={{ marginTop: "75px" }}
       >
         <h2>Register</h2>
-        <form onSubmit={handleRegister} className="card p-4 shadow">
+        <form onSubmit={handleRegister} className="card p-4 shadow mb-5">
           <div className="mb-3">
             <label>Full Name:</label>
             <input
@@ -92,6 +102,15 @@ const Register = () => {
               required
               pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
               title="Please enter a valid email address."
+            />
+          </div>
+          <div className="mb-3">
+            <label>Photo:</label>
+            <input
+              type="file"
+              className="form-control"
+              onChange={(e) => setAvatar(e.target.files[0])}
+              required
             />
           </div>
           <div className="mb-3">

@@ -10,12 +10,16 @@ const AddTask = () => {
   const [username, setUsername] = useState("");
   const [message, setMessage] = useState("");
   const [alertType, setAlertType] = useState("");
+  const [avatar, setAvatar] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const storedUsername = localStorage.getItem("username");
+    const avatarIcon = localStorage.getItem("icon");
+
     if (storedUsername) {
       setUsername(storedUsername);
+      setAvatar(avatarIcon);
     } else {
       navigate("/"); // Redirect to login if not authenticated
     }
@@ -26,8 +30,7 @@ const AddTask = () => {
     const userId = localStorage.getItem("userId");
 
     if (!userId) {
-      setAlertType("danger");
-      setMessage("Failed to add task: No user is logged in.");
+      displayMessage("danger", "Failed to add task: No user is logged in.");
       return;
     }
 
@@ -38,36 +41,40 @@ const AddTask = () => {
         user: { id: userId },
       });
 
-      setAlertType("success");
-      setMessage("Task added successfully");
-
-      setTimeout(() => {
-        setMessage("");
-        setAlertType("");
-      }, 3000);
-
-      setTaskName("");
-      setTaskDescription("");
+      displayMessage("success", "Task added successfully");
+      resetForm();
     } catch (error) {
-      setAlertType("danger");
-      setMessage("Failed to add task."); // Change alert type to danger
-
-      setTimeout(() => {
-        setMessage("");
-        setAlertType("");
-      }, 3000);
+      displayMessage("danger", "Failed to add task.");
     }
   };
 
+  const resetForm = () => {
+    setTaskName("");
+    setTaskDescription("");
+  };
+
+  const displayMessage = (type, messageText) => {
+    setAlertType(type);
+    setMessage(messageText);
+
+    setTimeout(() => {
+      setMessage("");
+      setAlertType("");
+    }, 3000);
+  };
+
   const handleLogout = () => {
-    localStorage.removeItem("username");
-    localStorage.removeItem("userId");
-    navigate("/");
+    localStorage.clear(); // Wipe everything from localStorage
+    navigate("/"); // Redirect to login page
   };
 
   return (
     <>
-      <Navbar username={username} handleLogout={handleLogout} />
+      <Navbar
+        username={username}
+        userIcon={avatar}
+        handleLogout={handleLogout}
+      />
       <div
         className="container col-lg-6 col-md-8 col-10 d-flex flex-column justify-content-center"
         style={{ marginTop: "135px" }}
