@@ -26,7 +26,7 @@ const EditItem = () => {
       setUserId(storedUserId);
       setAvatar(avatarIcon);
     } else {
-      navigate("/"); // Redirect if not authenticated
+      navigate("/");
       return;
     }
 
@@ -48,7 +48,7 @@ const EditItem = () => {
   }, [id, navigate]);
 
   const handleLogout = () => {
-    localStorage.clear(); // Wipe everything from localStorage
+    localStorage.clear();
     navigate("/");
   };
 

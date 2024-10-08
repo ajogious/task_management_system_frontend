@@ -11,9 +11,11 @@ const Register = () => {
   const [message, setMessage] = useState("");
   const [alertType, setAlertType] = useState("");
 
+  // Function to handle form submission
   const handleRegister = async (e) => {
     e.preventDefault();
 
+    // Prepare form data to include file upload
     const formData = new FormData();
     formData.append("fullName", fullName);
     formData.append("username", username);
@@ -22,6 +24,7 @@ const Register = () => {
     formData.append("password", password);
 
     try {
+      // Send POST request to backend
       const response = await axios.post(
         "http://localhost:8080/api/auth/register",
         formData,
@@ -34,21 +37,26 @@ const Register = () => {
 
       const message = response.data;
 
+      // Set success or error message based on response
       if (message === "Registration successful") {
         setAlertType("success");
+        setMessage("Registration successful.");
       } else {
         setAlertType("danger");
+        setMessage(message || "Registration failed.");
       }
 
-      setMessage(message || "Registration successful.");
-
+      // Clear message and alert after 3 seconds
       setTimeout(() => {
         setMessage("");
         setAlertType("");
       }, 3000);
     } catch (error) {
+      // Handle errors, including server error messages
       setAlertType("danger");
-      setMessage(error.response?.data || "Registration failed.");
+      setMessage(
+        error.response?.data || "An error occurred during registration."
+      );
 
       setTimeout(() => {
         setMessage("");
@@ -56,6 +64,7 @@ const Register = () => {
       }, 3000);
     }
 
+    // Reset form fields after submission
     setFullName("");
     setUsername("");
     setEmail("");
@@ -72,6 +81,7 @@ const Register = () => {
       >
         <h2>Register</h2>
         <form onSubmit={handleRegister} className="card p-4 shadow mb-5">
+          {/* Full Name Field */}
           <div className="mb-3">
             <label>Full Name:</label>
             <input
@@ -82,6 +92,8 @@ const Register = () => {
               required
             />
           </div>
+
+          {/* Username Field */}
           <div className="mb-3">
             <label>Username:</label>
             <input
@@ -92,6 +104,8 @@ const Register = () => {
               required
             />
           </div>
+
+          {/* Email Field */}
           <div className="mb-3">
             <label>Email:</label>
             <input
@@ -104,6 +118,8 @@ const Register = () => {
               title="Please enter a valid email address."
             />
           </div>
+
+          {/* Avatar Upload Field */}
           <div className="mb-3">
             <label>Photo:</label>
             <input
@@ -113,6 +129,8 @@ const Register = () => {
               required
             />
           </div>
+
+          {/* Password Field */}
           <div className="mb-3">
             <label>Password:</label>
             <input
@@ -125,13 +143,18 @@ const Register = () => {
               title="Password must be at least 6 characters long."
             />
           </div>
+
+          {/* Submit Button */}
           <button type="submit" className="btn btn-primary">
             Register
-          </button>{" "}
+          </button>
+
+          {/* Link to Login */}
           <strong className="mt-2">
             Already have an account? <a href="/">Click here</a>
           </strong>
-          <br />
+
+          {/* Alert Messages */}
           {message && (
             <div className={`alert alert-${alertType} mt-3`} role="alert">
               {message}

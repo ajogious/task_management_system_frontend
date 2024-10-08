@@ -21,7 +21,7 @@ const AddTask = () => {
       setUsername(storedUsername);
       setAvatar(avatarIcon);
     } else {
-      navigate("/"); // Redirect to login if not authenticated
+      navigate("/");
     }
   }, [navigate]);
 
@@ -64,8 +64,8 @@ const AddTask = () => {
   };
 
   const handleLogout = () => {
-    localStorage.clear(); // Wipe everything from localStorage
-    navigate("/"); // Redirect to login page
+    localStorage.clear();
+    navigate("/");
   };
 
   return (

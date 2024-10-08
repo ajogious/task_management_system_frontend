@@ -15,53 +15,68 @@ const ItemList = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchItems = async () => {
-      const userId = localStorage.getItem("userId");
-      const storedUsername = localStorage.getItem("username");
-      const avatarIcon = localStorage.getItem("icon");
-
-      if (storedUsername && userId) {
-        setUsername(storedUsername);
-        setAvatar(avatarIcon);
-      } else if (!userId) {
-        setError("User not logged in or userId not found.");
-        return;
-      } else {
-        navigate("/");
-      }
-
-      try {
-        const response = await axios.get(
-          `http://localhost:8080/api/tasks/${userId}`
-        );
-        setItems(response.data);
-      } catch (err) {
-        setError("Error fetching tasks.");
-      }
-    };
-
+    fetchUserData();
     fetchItems();
   }, [navigate]);
 
+  // Fetch user data from localStorage
+  const fetchUserData = () => {
+    const userId = localStorage.getItem("userId");
+    const storedUsername = localStorage.getItem("username");
+    const avatarIcon = localStorage.getItem("icon");
+
+    if (storedUsername && userId) {
+      setUsername(storedUsername);
+      setAvatar(avatarIcon);
+    } else if (!userId) {
+      setError("User not logged in or userId not found.");
+      return;
+    } else {
+      navigate("/");
+    }
+  };
+
+  // Fetch tasks from the backend
+  const fetchItems = async () => {
+    try {
+      const userId = localStorage.getItem("userId");
+      const response = await axios.get(
+        `http://localhost:8080/api/tasks/${userId}`
+      );
+      setItems(response.data);
+    } catch (err) {
+      setError("Error fetching tasks.");
+    }
+  };
+
+  // Handle logout
   const handleLogout = () => {
     localStorage.removeItem("username");
     localStorage.removeItem("userId");
     navigate("/");
   };
 
+  // Handle task deletion
   const handleDelete = async (id) => {
-    await axios.delete(`http://localhost:8080/api/tasks/delete/${id}`);
-    setItems(items.filter((item) => item.id !== id));
+    try {
+      await axios.delete(`http://localhost:8080/api/tasks/delete/${id}`);
+      setItems(items.filter((item) => item.id !== id));
+    } catch (err) {
+      setError("Error deleting task.");
+    }
   };
 
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-  };
+  // Handle search input change
+  const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
-  const filteredItems = items.filter((item) =>
-    item.taskName.toLowerCase().includes(searchTerm.toLowerCase())
+  // Filter items based on search term
+  const filteredItems = items.filter(
+    (item) =>
+      item.taskName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.taskDescription.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredItems.slice(indexOfFirstItem, indexOfLastItem);
@@ -93,6 +108,7 @@ const ItemList = () => {
         {/* Only show search and table if there are items */}
         {items.length > 0 ? (
           <>
+            {/* Search input */}
             <form className="mb-3">
               <input
                 type="text"
@@ -103,49 +119,52 @@ const ItemList = () => {
               />
             </form>
 
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Task Name</th>
-                  <th>Task Description</th>
-                  <th>1st Created Date</th>
-                  <th>Last Updated Date</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentItems.map((item) => (
-                  <tr key={item.id}>
-                    <td>{item.taskName}</td>
-                    <td>{item.taskDescription}</td>
-                    <td>
-                      {dayjs(item.createdAt).format("DD-MM-YYYY hh:mm A")}
-                    </td>
-                    <td>
-                      {item.updatedAt
-                        ? dayjs(item.updatedAt).format("DD-MM-YYYY hh:mm A")
-                        : ""}
-                    </td>
-                    <td>
-                      <div className="d-grid gap-1 d-lg-block">
-                        <Link
-                          to={`/update/${item.id}`}
-                          className="btn btn-warning me-2 mb-2 mb-md-0"
-                        >
-                          Edit
-                        </Link>
-                        <button
-                          className="btn btn-danger"
-                          onClick={() => handleDelete(item.id)}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
+            {/* Scrollable table */}
+            <div style={{ overflowX: "auto" }}>
+              <table className="table" style={{ minWidth: "1000px" }}>
+                <thead>
+                  <tr>
+                    <th>Task Name</th>
+                    <th>Task Description</th>
+                    <th>1st Created Date</th>
+                    <th>Last Updated Date</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {currentItems.map((item) => (
+                    <tr key={item.id}>
+                      <td>{item.taskName}</td>
+                      <td>{item.taskDescription}</td>
+                      <td>
+                        {dayjs(item.createdAt).format("DD-MM-YYYY hh:mm A")}
+                      </td>
+                      <td>
+                        {item.updatedAt
+                          ? dayjs(item.updatedAt).format("DD-MM-YYYY hh:mm A")
+                          : ""}
+                      </td>
+                      <td>
+                        <div className="d-grid gap-1 d-lg-block">
+                          <Link
+                            to={`/update/${item.id}`}
+                            className="btn btn-warning me-2 mb-2 mb-md-0"
+                          >
+                            Edit
+                          </Link>
+                          <button
+                            className="btn btn-danger"
+                            onClick={() => handleDelete(item.id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
             {/* Pagination */}
             {totalPages > 1 && (

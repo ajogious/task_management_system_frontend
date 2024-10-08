@@ -1,27 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 const Navbar = ({ username, userIcon, handleLogout }) => {
-  const [showWelcomeMessage, setShowWelcomeMessage] = useState(false);
+  const [showWelcomeMessage, setShowWelcomeMessage] = useState(!!username);
 
   useEffect(() => {
-    if (username) {
-      setShowWelcomeMessage(true);
-    } else {
-      setShowWelcomeMessage(false);
-    }
+    setShowWelcomeMessage(!!username);
   }, [username]);
-
-  const handleLogoutClick = () => {
-    if (handleLogout) handleLogout();
-  };
 
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-light fixed-top">
       <div className="container">
         {/* Brand and Home Link */}
-        <div className="d-flex justify-content-start align-items-center">
-          {username && showWelcomeMessage && (
+        <div className="d-flex align-items-center">
+          {showWelcomeMessage && userIcon && (
             <div
               className="image-avatar me-2"
               style={{
@@ -60,26 +52,24 @@ const Navbar = ({ username, userIcon, handleLogout }) => {
 
         {/* Collapsible content */}
         <div className="collapse navbar-collapse" id="navbarNav">
-          <ul className="navbar-nav ms-auto">
-            {username && showWelcomeMessage && (
-              <>
-                <li className="nav-item">
-                  <a href="/userpage" className="nav-link">
-                    Home Page
-                  </a>
-                </li>
-                <li className="nav-item">
-                  <button
-                    className="btn btn-danger"
-                    onClick={handleLogoutClick}
-                    aria-label="Logout"
-                  >
-                    Logout
-                  </button>
-                </li>
-              </>
-            )}
-          </ul>
+          {showWelcomeMessage && (
+            <ul className="navbar-nav ms-auto">
+              <li className="nav-item">
+                <Link to="/userpage" className="nav-link">
+                  Home Page
+                </Link>
+              </li>
+              <li className="nav-item">
+                <button
+                  className="btn btn-danger"
+                  onClick={handleLogout}
+                  aria-label="Logout"
+                >
+                  Logout
+                </button>
+              </li>
+            </ul>
+          )}
         </div>
       </div>
     </nav>

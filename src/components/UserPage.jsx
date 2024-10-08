@@ -11,26 +11,26 @@ const UserPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Retrieve username from localStorage
+    // Retrieve user data from localStorage
     const storedUsername = localStorage.getItem("username");
     const accCreated = localStorage.getItem("created");
     const avatarIcon = localStorage.getItem("icon");
+
     if (storedUsername) {
       setUsername(storedUsername);
       setCreated(accCreated);
       setAvatar(avatarIcon);
     } else {
-      navigate("/"); // Redirect to login if not logged in
+      navigate("/"); // Redirect to login if user is not logged in
     }
   }, [navigate]);
 
   const handleLogout = () => {
-    // Clear localStorage to log out the user
-    localStorage.removeItem("username");
-    localStorage.removeItem("created");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("icon");
-    navigate("/"); // Redirect to login page
+    // Clear localStorage and redirect to login page
+    ["username", "created", "userId", "icon"].forEach((item) =>
+      localStorage.removeItem(item)
+    );
+    navigate("/"); // Redirect to login page after logout
   };
 
   const handleAddTask = () => {
@@ -51,14 +51,20 @@ const UserPage = () => {
         <h1>User Dashboard</h1>
         <h2 className="display-6">Welcome, {username}!</h2>
         <div className="mt-3">
+          {/* Add Task Button */}
           <button className="btn btn-primary me-3" onClick={handleAddTask}>
             Add Task
           </button>
+
+          {/* Call-to-action (CTO) component */}
           <CTO />
-          <div className="alert alert-success mt-3">
-            Accounted was created on:{" "}
-            {dayjs(created).format("DD-MM-YYYY hh:mm A")}
-          </div>
+
+          {/* Account creation date display */}
+          {created && (
+            <div className="alert alert-success mt-3">
+              Account created on: {dayjs(created).format("DD-MM-YYYY hh:mm A")}
+            </div>
+          )}
         </div>
       </div>
     </>

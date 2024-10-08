@@ -17,13 +17,12 @@ const Login = () => {
         "http://localhost:8080/api/auth/login",
         { email, password }
       );
-      console.log(response.data);
 
       if (response.data.message === "Login successful") {
         setAlertType("success");
         setMessage("Login successful");
 
-        // Store username and userId in localStorage
+        // Store user details in localStorage
         localStorage.setItem("username", response.data.username);
         localStorage.setItem("userId", response.data.userId);
         localStorage.setItem("created", response.data.createdAt);
@@ -33,29 +32,22 @@ const Login = () => {
         setTimeout(() => {
           navigate("/userpage");
         }, 1500);
-      } else {
-        setAlertType("danger");
-        setMessage("Invalid email or password");
       }
-
-      setTimeout(() => {
-        setMessage("");
-        setAlertType("");
-      }, 3000);
     } catch (error) {
+      const errorMessage = error.response?.data?.message || "Error logging in";
       setAlertType("danger");
-      setMessage(error.response?.data?.message || "Error logging in");
-
-      setTimeout(() => {
-        setMessage("");
-        setAlertType("");
-      }, 3000);
+      setMessage(errorMessage);
     }
+
+    // Clear alert after 3 seconds
+    setTimeout(() => {
+      setMessage("");
+      setAlertType("");
+    }, 3000);
   };
 
   return (
     <>
-      {/* Retrieve avatar and username for Navbar */}
       <Navbar
         username={localStorage.getItem("username")}
         userIcon={localStorage.getItem("icon")}
