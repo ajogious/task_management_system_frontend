@@ -1,79 +1,177 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 
-const Navbar = ({ username, userIcon, handleLogout }) => {
-  const [showWelcomeMessage, setShowWelcomeMessage] = useState(!!username);
+function Navbar({ setMessage, setAlertType }) {
+  const navigate = useNavigate();
+  const [userImage, setUserImage] = useState(null);
+
+  const userLogin = () => localStorage.getItem("userDetails");
+
+  const userDetails = userLogin()
+    ? JSON.parse(localStorage.getItem("userDetails"))
+    : null;
+  const username = userDetails?.username || "";
+  const role = userDetails?.role || "";
+
+  const handleLogout = async () => {
+    const token = localStorage.getItem("authToken");
+
+    try {
+      await axios.post(
+        "http://localhost:8080/api/auth/logout",
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setMessage("Logout successful.");
+      setAlertType("success");
+    } catch (error) {
+      setMessage("Logout failed.");
+      setAlertType("danger");
+    } finally {
+      setTimeout(() => {
+        setMessage("");
+        setAlertType("");
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("userDetails");
+        navigate("/login");
+      }, 1000);
+    }
+  };
 
   useEffect(() => {
-    setShowWelcomeMessage(!!username);
-  }, [username]);
+    const updateImageFromStorage = () => {
+      if (userDetails?.image) {
+        setUserImage(`http://localhost:8080/${userDetails.image}`);
+      }
+    };
+
+    updateImageFromStorage();
+
+    window.addEventListener("storage", updateImageFromStorage);
+    return () => window.removeEventListener("storage", updateImageFromStorage);
+  }, [userDetails]);
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+    <nav
+      className="navbar navbar-expand-lg fixed-top bg-primary"
+      data-bs-theme="dark"
+    >
       <div className="container">
-        {/* Brand and Home Link */}
-        <div className="d-flex align-items-center">
-          {showWelcomeMessage && userIcon && (
-            <div
-              className="image-avatar me-2"
-              style={{
-                width: "50px",
-                height: "50px",
-                borderRadius: "50%",
-                overflow: "hidden",
-                border: "2px solid grey",
-              }}
-            >
-              {/* Display the user's avatar */}
-              <img
-                src={`http://localhost:8080${userIcon}`}
-                alt="User Avatar"
-                className="img-fluid"
-              />
-            </div>
-          )}
-          <Link className="navbar-brand" to="/userpage">
-            <strong className="h2">Task Manager</strong>
-          </Link>
-        </div>
+        <Link className="navbar-brand" to="/dashboard">
+          Task Management System
+        </Link>
 
-        {/* Navbar Toggler for small screens */}
         <button
           className="navbar-toggler"
           type="button"
           data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-          aria-controls="navbarNav"
+          data-bs-target="#navbarScroll"
+          aria-controls="navbarScroll"
           aria-expanded="false"
           aria-label="Toggle navigation"
         >
           <span className="navbar-toggler-icon"></span>
         </button>
 
-        {/* Collapsible content */}
-        <div className="collapse navbar-collapse" id="navbarNav">
-          {showWelcomeMessage && (
-            <ul className="navbar-nav ms-auto">
-              <li className="nav-item">
-                <Link to="/userpage" className="nav-link">
-                  Home Page
-                </Link>
-              </li>
-              <li className="nav-item">
-                <button
-                  className="btn btn-danger"
-                  onClick={handleLogout}
-                  aria-label="Logout"
-                >
-                  Logout
-                </button>
-              </li>
-            </ul>
+        <div className="collapse navbar-collapse" id="navbarScroll">
+          {userLogin() && (
+            <>
+              <ul className="navbar-nav">
+                <li className="nav-item">
+                  <Link className="nav-link" to="/add-task">
+                    Add Task
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link
+                    className="nav-link"
+                    to={`/view-tasks/${userDetails?.id || "default"}`}
+                  >
+                    View Tasks
+                  </Link>
+                </li>
+              </ul>
+
+              <ul className="navbar-nav ms-auto my-2 my-lg-0 navbar-nav-scroll">
+                <p className="lead pt-2 text-light">Hi! {username}</p>
+                <li className="nav-item dropdown">
+                  <Link
+                    className="nav-link dropdown-toggle"
+                    to="#"
+                    role="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                    aria-label="User menu"
+                  >
+                    <img
+                      src={userImage || "default_avatar.png"}
+                      alt="User"
+                      style={{
+                        width: "35px",
+                        height: "35px",
+                        borderRadius: "50%",
+                      }}
+                    />
+                  </Link>
+                  <ul className="dropdown-menu">
+                    <li>
+                      <Link
+                        className="dropdown-item text-secondary"
+                        to="/dashboard"
+                      >
+                        User Dashboard
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        className="dropdown-item text-secondary"
+                        to={`/profile/${userDetails?.id || "default"}`}
+                      >
+                        User Profile
+                      </Link>
+                    </li>
+                    {role === "ADMIN" && (
+                      <>
+                        <li>
+                          <Link
+                            className="dropdown-item text-secondary"
+                            to="/admin-dashboard"
+                          >
+                            Admin Dashboard
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            className="dropdown-item text-secondary"
+                            to="/user-management"
+                          >
+                            See Users
+                          </Link>
+                        </li>
+                      </>
+                    )}
+                    <li>
+                      <hr className="dropdown-divider" />
+                    </li>
+                    <li>
+                      <button
+                        className="dropdown-item text-danger"
+                        onClick={handleLogout}
+                      >
+                        Logout
+                      </button>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </>
           )}
         </div>
       </div>
     </nav>
   );
-};
+}
 
 export default Navbar;
