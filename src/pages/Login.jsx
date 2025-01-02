@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -11,6 +11,10 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    localStorage.clear();
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -51,21 +55,6 @@ function Login() {
       setLoading(false);
     }
   };
-
-  // const handleGoogleLogin = async () => {
-  //   try {
-  //     setLoading(true);
-
-  //     // Redirect user to Google OAuth2 login
-  //     window.location.href =
-  //       "http://localhost:8080/oauth2/authorization/google";
-  //   } catch (error) {
-  //     setAlertType("danger");
-  //     setMessage("Google login failed. Try again later.");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   return (
     <div
@@ -110,20 +99,6 @@ function Login() {
         <button type="submit" className="btn btn-primary" disabled={loading}>
           {loading ? "Logging in..." : "Login"}
         </button>
-        {/* <p className="text-center mt-3">Or</p>
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={handleGoogleLogin}
-          disabled={loading}
-        >
-          <img
-            src="google.png"
-            alt="google_image"
-            style={{ width: "20px", marginRight: "5px", borderRadius: "50%" }}
-          />
-          {loading ? "Logging in..." : "Login with Google"}
-        </button> */}
         {message && (
           <div className={`alert alert-${alertType} mt-3`} role="alert">
             {message}

@@ -125,7 +125,7 @@ function ViewTasks() {
           <input
             type="text"
             className="form-control"
-            placeholder="Search task with title or description..."
+            placeholder="Search task..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />

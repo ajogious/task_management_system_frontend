@@ -22,7 +22,7 @@ const UpdateProfile = ({ setUserImage }) => {
 
       try {
         const response = await axios.get(
-          `http://localhost:8080/api/auth/user/${userId}`,
+          `http://localhost:8080/api/users/user/${userId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -69,7 +69,7 @@ const UpdateProfile = ({ setUserImage }) => {
     try {
       const token = localStorage.getItem("authToken");
       const response = await axios.put(
-        `http://localhost:8080/api/auth/update-profile/${userId}`,
+        `http://localhost:8080/api/users/update-profile/${userId}`,
         formData,
         {
           headers: {
@@ -87,7 +87,7 @@ const UpdateProfile = ({ setUserImage }) => {
       };
       localStorage.setItem("userDetails", JSON.stringify(updatedUserDetails));
 
-      // Update the user image in the parent component
+      // Updating the user image in the parent component
       setUserImage(`${serverUrl}${updatedImagePath}`);
 
       setMessage("Profile updated successfully.");

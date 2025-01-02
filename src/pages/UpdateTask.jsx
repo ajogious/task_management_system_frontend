@@ -6,10 +6,9 @@ function UpdateTask() {
   const { taskId } = useParams(); // Get taskId from the URL
   console.log(taskId);
 
-  const location = useLocation(); // Access navigation state
+  const location = useLocation();
   const navigate = useNavigate();
 
-  // Extract task and userId from state
   const taskFromState = location.state?.task;
   const userId = location.state?.userId;
   console.log(userId);
@@ -24,7 +23,6 @@ function UpdateTask() {
   const [alertType, setAlertType] = useState("");
 
   useEffect(() => {
-    // Fetch task details if not available in state
     if (!taskFromState) {
       const fetchTaskDetails = async () => {
         const token = localStorage.getItem("authToken");

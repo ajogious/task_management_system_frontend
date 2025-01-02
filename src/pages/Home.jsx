@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 
 const Home = () => {
@@ -8,6 +8,10 @@ const Home = () => {
     if (hour < 18) return "Good Afternoon";
     return "Good Evening";
   };
+
+  useEffect(() => {
+    localStorage.clear();
+  }, []);
 
   return (
     <div className="home">

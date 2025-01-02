@@ -21,21 +21,21 @@ function UserManagement() {
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem("authToken");
-
-      // Fetch users with pagination and search
-      const response = await axios.get("http://localhost:8080/api/auth/users", {
-        headers: { Authorization: `Bearer ${token}` },
-        params: {
-          page: currentPage - 1,
-          size: rowsPerPage,
-          search: searchTerm.trim(),
-        },
-      });
+      const response = await axios.get(
+        "http://localhost:8080/api/admin/users",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: {
+            page: currentPage - 1,
+            size: rowsPerPage,
+            search: searchTerm.trim(),
+          },
+        }
+      );
 
       const users = response.data.content || [];
-      const totalPages = response.data.totalPages || 0;
+      const totalPages = response.data.totalPages || 1;
 
-      // Fetch task stats for each user
       const statsPromises = users.map((user) =>
         axios
           .get(`http://localhost:8080/api/dashboard/stats/${user.id}`, {
@@ -60,7 +60,7 @@ function UserManagement() {
   };
 
   const openModal = (action, user) => {
-    setModalAction(action); // 'suspend', 'activate', 'delete'
+    setModalAction(action);
     setSelectedUser(user);
     setShowModal(true);
   };
@@ -79,21 +79,21 @@ function UserManagement() {
     try {
       if (modalAction === "suspend") {
         await axios.put(
-          `http://localhost:8080/api/auth/${selectedUser.id}/suspend`,
+          `http://localhost:8080/api/admin/${selectedUser.id}/suspend`,
           null,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setMessage("User suspended successfully.");
       } else if (modalAction === "activate") {
         await axios.put(
-          `http://localhost:8080/api/auth/${selectedUser.id}/activate`,
+          `http://localhost:8080/api/admin/${selectedUser.id}/activate`,
           null,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setMessage("User activated successfully.");
       } else if (modalAction === "delete") {
         await axios.delete(
-          `http://localhost:8080/api/auth/user/${selectedUser.id}`,
+          `http://localhost:8080/api/admin/user/${selectedUser.id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setMessage("User deleted successfully.");
@@ -102,7 +102,6 @@ function UserManagement() {
       setAlertType("success");
       fetchUsers();
     } catch (error) {
-      console.error("Action failed:", error);
       setMessage("Failed to perform action. Please try again.");
       setAlertType("danger");
     } finally {
@@ -144,7 +143,7 @@ function UserManagement() {
           <input
             type="text"
             className="form-control"
-            placeholder="Search user with username or email..."
+            placeholder="Search user..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -172,10 +171,10 @@ function UserManagement() {
             <tr>
               <th>Email</th>
               <th>Username</th>
+              <th>Phone No</th>
               <th>Total Tasks</th>
               <th>Completed Tasks</th>
               <th>Pending Tasks</th>
-              <th>User Role</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -185,10 +184,10 @@ function UserManagement() {
                 <tr key={user.id}>
                   <td>{user.email}</td>
                   <td>{user.username}</td>
+                  <td>{user.phoneNo}</td>
                   <td>{user.stats?.totalTasks || 0}</td>
                   <td>{user.stats?.completedTasks || 0}</td>
                   <td>{user.stats?.pendingTasks || 0}</td>
-                  <td>{user.role}</td>
                   <td>
                     {user.active ? (
                       <button

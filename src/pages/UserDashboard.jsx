@@ -12,7 +12,6 @@ function UserDashboard() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Fetch user details from localStorage
   useEffect(() => {
     const storedUserDetails = localStorage.getItem("userDetails");
 
@@ -25,7 +24,6 @@ function UserDashboard() {
     setLoading(false);
   }, [navigate]);
 
-  // Fetch task statistics
   useEffect(() => {
     const fetchTaskStats = async () => {
       if (!userDetails) return;

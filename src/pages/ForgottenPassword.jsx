@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 
@@ -7,6 +7,10 @@ function ForgottenPassword() {
   const [message, setMessage] = useState("");
   const [alertType, setAlertType] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    localStorage.clear();
+  }, []);
 
   const handlePasswordReset = async (e) => {
     e.preventDefault();
@@ -28,6 +32,7 @@ function ForgottenPassword() {
       const { message } = response.data;
       setAlertType("success");
       setMessage(message);
+      setEmail("");
     } catch (error) {
       const backendMessage =
         error.response?.data?.message || "An error occurred. Please try again.";

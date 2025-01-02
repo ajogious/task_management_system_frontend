@@ -24,7 +24,7 @@ function Profile({ setUserImage }) {
 
       try {
         const response = await axios.get(
-          `http://localhost:8080/api/auth/user/${userId}`,
+          `http://localhost:8080/api/users/user/${userId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }

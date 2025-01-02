@@ -59,10 +59,18 @@ function Navbar({ setMessage, setAlertType }) {
       data-bs-theme="dark"
     >
       <div className="container">
-        <Link className="navbar-brand" to="/dashboard">
+        <Link className="navbar-brand" to="/">
           Task Management System
         </Link>
-
+        <a
+          className="nav-link text-light me-2"
+          href="mailto:a3techacademy@gmail.com"
+        >
+          Contact Admin 1
+        </a>
+        <a className="nav-link text-light" href="mailto:ajogious@gmail.com">
+          Contact Admin 2
+        </a>
         <button
           className="navbar-toggler"
           type="button"

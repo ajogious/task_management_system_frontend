@@ -6,7 +6,7 @@ function AddTask() {
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [status, setStatus] = useState("PENDING"); // Default status
+  const [status, setStatus] = useState("PENDING");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [alertType, setAlertType] = useState("");
@@ -53,7 +53,7 @@ function AddTask() {
       }, 5000);
 
       setTimeout(() => {
-        navigate(`/view-tasks/${userId}`); // Redirect to the task list page
+        navigate(`/view-tasks/${userId}`);
       }, 1000);
     } catch (error) {
       setMessage(

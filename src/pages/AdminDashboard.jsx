@@ -16,11 +16,8 @@ function AdminDashboard() {
   const [userDetails, setUserDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
-  // Get the current month name
   const currentMonth = new Date().toLocaleString("default", { month: "long" });
 
-  // Fetch user details from localStorage
   useEffect(() => {
     const storedUserDetails = localStorage.getItem("userDetails");
 
@@ -33,7 +30,6 @@ function AdminDashboard() {
     setLoading(false);
   }, [navigate]);
 
-  // Fetch task statistics
   useEffect(() => {
     const fetchTaskStats = async () => {
       if (!userDetails) return;
