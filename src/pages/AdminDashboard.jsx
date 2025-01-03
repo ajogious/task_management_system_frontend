@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import Spinner from "../components/Spinner";
+import API_ENDPOINTS from "../services/API_ENDPOINTS";
 
 function AdminDashboard() {
   const [taskStats, setTaskStats] = useState({
@@ -18,15 +20,18 @@ function AdminDashboard() {
   const navigate = useNavigate();
   const currentMonth = new Date().toLocaleString("default", { month: "long" });
 
+  const getAuthToken = () => localStorage.getItem("authToken");
+
   useEffect(() => {
-    const storedUserDetails = localStorage.getItem("userDetails");
-
-    if (!storedUserDetails) {
-      navigate("/login");
-      return;
-    }
-
-    setUserDetails(JSON.parse(storedUserDetails));
+    const authenticateUser = () => {
+      const storedUserDetails = localStorage.getItem("userDetails");
+      if (!storedUserDetails) {
+        navigate("/login");
+        return null;
+      }
+      setUserDetails(JSON.parse(storedUserDetails));
+    };
+    authenticateUser();
     setLoading(false);
   }, [navigate]);
 
@@ -34,7 +39,7 @@ function AdminDashboard() {
     const fetchTaskStats = async () => {
       if (!userDetails) return;
 
-      const token = localStorage.getItem("authToken");
+      const token = getAuthToken();
       if (!token) {
         navigate("/login");
         return;
@@ -42,12 +47,12 @@ function AdminDashboard() {
 
       try {
         const response = await axios.get(
-          "http://localhost:8080/api/admin/dashboard/stats",
+          API_ENDPOINTS.ADMIN.ADMIN_USERS_STATS,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        setTaskStats(response.data);
+        setTaskStats(response.data || {});
       } catch (error) {
         if (error.response?.status === 403) {
           navigate("/login");
@@ -59,34 +64,29 @@ function AdminDashboard() {
   }, [userDetails, navigate]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <Spinner />;
   }
 
   if (!userDetails) {
     return null;
   }
 
-  function TaskCard({ title, count, subtitle }) {
-    return (
-      <div className="col-md-3 col-12">
-        <div className="card border-4 border-primary p-3">
-          <h4 className="card-title">{title}</h4>
-          {subtitle && <p className="card-subtitle text-muted">{subtitle}</p>}
-          <hr />
-          <h1 className="card-text">{count}</h1>
-        </div>
+  const TaskCard = ({ title, count, subtitle, borderClass = "primary" }) => (
+    <div className="col-md-3 col-12">
+      <div className={`card border-4 border-${borderClass} p-3`}>
+        <h4 className="card-title">{title}</h4>
+        {subtitle && <p className="card-subtitle text-muted">{subtitle}</p>}
+        <hr />
+        <h1 className="card-text">{count || 0}</h1>
       </div>
-    );
-  }
+    </div>
+  );
 
   return (
     <div className="container">
       <div
         className="AdminDashboard"
-        style={{
-          marginTop: "120px",
-          marginBottom: "200px",
-        }}
+        style={{ marginTop: "120px", marginBottom: "200px" }}
       >
         <h2>Admin Dashboard</h2>
         <h4 className="mt-3 text-center">Task Management Analytics</h4>
@@ -110,10 +110,12 @@ function AdminDashboard() {
           <TaskCard
             title="Total Completed Tasks"
             count={taskStats.totalCompletedTasks}
+            borderClass="success"
           />
           <TaskCard
             title="Total Pending Tasks"
             count={taskStats.totalPendingTasks}
+            borderClass="warning"
           />
         </div>
       </div>

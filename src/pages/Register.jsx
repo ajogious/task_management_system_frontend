@@ -2,26 +2,49 @@ import React, { useState, useRef } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import API_ENDPOINTS from "../services/API_ENDPOINTS";
 
 const Register = () => {
-  const [fullName, setFullName] = useState("");
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [phoneNo, setPhoneNo] = useState("");
-  const [address, setAddress] = useState("");
-  const [gender, setGender] = useState("Male");
-  const [avatar, setAvatar] = useState(null);
-  const [password, setPassword] = useState("");
+  const [formData, setFormData] = useState({
+    fullName: "",
+    username: "",
+    email: "",
+    phoneNo: "",
+    address: "",
+    gender: "Male",
+    password: "",
+    avatar: null,
+  });
   const [message, setMessage] = useState("");
   const [alertType, setAlertType] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const fileInputRef = useRef();
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const imagePreview = document.getElementById("image-preview");
+        imagePreview.src = event.target.result;
+        imagePreview.style.display = "block";
+      };
+      reader.readAsDataURL(file);
+      setFormData({ ...formData, avatar: file });
+    }
+  };
+
   const handleRegister = async (e) => {
     e.preventDefault();
 
-    // Validation of image
+    const { avatar, ...userDetails } = formData;
+
     if (!avatar) {
       setMessage("Please upload an avatar.");
       setAlertType("danger");
@@ -38,81 +61,52 @@ const Register = () => {
       return;
     }
 
-    // Prepare form data
-    const formData = new FormData();
-    const user = {
-      fullName,
-      username,
-      email,
-      phoneNo,
-      address,
-      gender,
-      password,
-    };
-    formData.append(
+    const formPayload = new FormData();
+    formPayload.append(
       "user",
-      new Blob([JSON.stringify(user)], { type: "application/json" })
+      new Blob([JSON.stringify(userDetails)], { type: "application/json" })
     );
-    formData.append("file", avatar);
+    formPayload.append("file", avatar);
 
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/auth/register",
-        formData,
+        API_ENDPOINTS.AUTH.REGISTER,
+        formPayload,
         {
           headers: { "Content-Type": "multipart/form-data" },
         }
       );
 
-      const message = response.data.message;
       setAlertType("success");
-      setMessage(message);
+      setMessage(response.data.message);
 
-      // Redirect to Dashboard
       setTimeout(() => navigate("/login"), 2000);
-
-      setTimeout(() => {
-        setMessage("");
-        setAlertType("");
-      }, 5000);
     } catch (error) {
-      const backendMessage =
+      const errorMessage =
         error.response?.data?.message ||
         "An error occurred during registration.";
       setAlertType("danger");
-      setMessage(backendMessage);
-
+      setMessage(errorMessage);
+    } finally {
       setTimeout(() => {
         setMessage("");
         setAlertType("");
       }, 5000);
-    }
 
-    // Reset form fields
-    setFullName("");
-    setUsername("");
-    setEmail("");
-    setPhoneNo("");
-    setAddress("");
-    setGender("Male");
-    setAvatar(null);
-    setPassword("");
-    fileInputRef.current.value = "";
-    document.getElementById("image-preview").src = "#";
-    document.getElementById("image-preview").style.display = "none";
-  };
-
-  const handleImagePreview = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const imagePreview = document.getElementById("image-preview");
-        imagePreview.src = event.target.result;
-        imagePreview.style.display = "block";
-      };
-      reader.readAsDataURL(file);
-      setAvatar(file);
+      setFormData({
+        fullName: "",
+        username: "",
+        email: "",
+        phoneNo: "",
+        address: "",
+        gender: "Male",
+        password: "",
+        avatar: null,
+      });
+      fileInputRef.current.value = "";
+      const imagePreview = document.getElementById("image-preview");
+      imagePreview.src = "#";
+      imagePreview.style.display = "none";
     }
   };
 
@@ -123,73 +117,34 @@ const Register = () => {
     >
       <h2>Register</h2>
       <form onSubmit={handleRegister} className="card p-4 shadow mb-5">
-        {/* Full Name Field */}
-        <div className="mb-3">
-          <label>Full Name:</label>
-          <input
-            type="text"
-            className="form-control"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            required
-            placeholder="Enter your fullname..."
-          />
-        </div>
-        {/* Username Field */}
-        <div className="mb-3">
-          <label>Username:</label>
-          <input
-            type="text"
-            className="form-control"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-            placeholder="Choose a username..."
-          />
-        </div>
-        {/* Email Field */}
-        <div className="mb-3">
-          <label>Email:</label>
-          <input
-            type="email"
-            className="form-control"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            placeholder="Enter your email..."
-          />
-        </div>
-        {/* PhoneNo Field */}
-        <div className="mb-3">
-          <label>Phone No:</label>
-          <input
-            type="tel"
-            className="form-control"
-            value={phoneNo}
-            onChange={(e) => setPhoneNo(e.target.value)}
-            required
-            placeholder="Your phone number..."
-          />
-        </div>
-        {/* Address Field */}
-        <div className="mb-3">
-          <label>Home Address:</label>
-          <input
-            type="text"
-            className="form-control"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            required
-            placeholder="Enter your home address..."
-          />
-        </div>
-        {/* Gender Field */}
+        {[
+          { label: "Full Name", name: "fullName", type: "text" },
+          { label: "Username", name: "username", type: "text" },
+          { label: "Email", name: "email", type: "email" },
+          { label: "Phone No", name: "phoneNo", type: "tel" },
+          { label: "Home Address", name: "address", type: "text" },
+        ].map(({ label, name, type }) => (
+          <div className="mb-3" key={name}>
+            <label>{label}:</label>
+            <input
+              type={type}
+              className="form-control"
+              name={name}
+              value={formData[name]}
+              onChange={handleInputChange}
+              required
+              placeholder={`Enter your ${label.toLowerCase()}...`}
+            />
+          </div>
+        ))}
+
         <div className="mb-3">
           <label>Gender:</label>
           <select
             className="form-select"
-            value={gender}
-            onChange={(e) => setGender(e.target.value)}
+            name="gender"
+            value={formData.gender}
+            onChange={handleInputChange}
             required
           >
             <option value="Male">Male</option>
@@ -197,17 +152,17 @@ const Register = () => {
             <option value="Other">Other</option>
           </select>
         </div>
-        {/* Avatar Upload Field */}
+
         <div className="mb-3">
           <label htmlFor="avatar-upload" className="custom-file-label">
             Upload Image
           </label>
           <input
-            className="form-control"
             type="file"
+            className="form-control"
             id="avatar-upload"
             accept="image/png, image/jpeg"
-            onChange={handleImagePreview}
+            onChange={handleImageChange}
             ref={fileInputRef}
             required
           />
@@ -224,15 +179,16 @@ const Register = () => {
             }}
           />
         </div>
-        {/* Password Field */}
+
         <div className="mb-3">
           <label>Password:</label>
           <div className="input-group">
             <input
               type={showPassword ? "text" : "password"}
               className="form-control"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              name="password"
+              value={formData.password}
+              onChange={handleInputChange}
               maxLength={8}
               minLength={4}
               required
@@ -247,16 +203,17 @@ const Register = () => {
             </button>
           </div>
         </div>
-        {/* Submit Button */}
+
         <button type="submit" className="btn btn-primary">
           Register
         </button>
-        {/* Alert Messages */}
+
         {message && (
           <div className={`alert alert-${alertType} mt-3`} role="alert">
             {message}
           </div>
         )}
+
         <p className="mt-3">
           Already have an account?{" "}
           <Link to="/login" className="text-primary">

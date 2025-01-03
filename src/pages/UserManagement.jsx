@@ -1,63 +1,88 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import API_ENDPOINTS from "../services/API_ENDPOINTS";
+import Spinner from "../components/Spinner";
 
 function UserManagement() {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [message, setMessage] = useState("");
   const [alertType, setAlertType] = useState("");
+  const [pageLoading, setPageLoading] = useState(true);
+  const [tableLoading, setTableLoading] = useState(false);
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
   const [modalAction, setModalAction] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  const fetchUsers = async () => {
+  const resetMessage = () => {
+    setTimeout(() => {
+      setMessage("");
+      setAlertType("");
+    }, 5000);
+  };
+
+  const fetchUsers = async (isInitialLoad = false) => {
+    if (isInitialLoad) {
+      setPageLoading(true);
+    } else {
+      setTableLoading(true);
+    }
+
     try {
       const token = localStorage.getItem("authToken");
-      const response = await axios.get(
-        "http://localhost:8080/api/admin/users",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          params: {
-            page: currentPage - 1,
-            size: rowsPerPage,
-            search: searchTerm.trim(),
-          },
-        }
-      );
+      const response = await axios.get(API_ENDPOINTS.ADMIN.USERS, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: {
+          page: currentPage - 1,
+          size: rowsPerPage,
+          search: searchTerm.trim(),
+        },
+      });
 
       const users = response.data.content || [];
       const totalPages = response.data.totalPages || 1;
 
       const statsPromises = users.map((user) =>
         axios
-          .get(`http://localhost:8080/api/dashboard/stats/${user.id}`, {
+          .get(API_ENDPOINTS.DASHBOARD.STATS(user.id), {
             headers: { Authorization: `Bearer ${token}` },
           })
           .then((res) => ({ ...user, stats: res.data }))
+          .catch(() => ({
+            ...user,
+            stats: { totalTasks: 0, completedTasks: 0, pendingTasks: 0 },
+          }))
       );
 
       const usersWithStats = await Promise.all(statsPromises);
 
       setUsers(usersWithStats);
       setTotalPages(totalPages);
-      setLoading(false);
     } catch (error) {
       setMessage("Failed to fetch users. Please try again.");
       setAlertType("danger");
-      setTimeout(() => {
-        setMessage("");
-        setAlertType("");
-      }, 5000);
+      resetMessage();
+    } finally {
+      setPageLoading(false);
+      setTableLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchUsers(true);
+  }, []);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [currentPage, rowsPerPage, searchTerm]);
 
   const openModal = (action, user) => {
     setModalAction(action);
@@ -75,27 +100,27 @@ function UserManagement() {
     if (!selectedUser) return;
 
     const token = localStorage.getItem("authToken");
+    setActionLoading(true);
 
     try {
       if (modalAction === "suspend") {
         await axios.put(
-          `http://localhost:8080/api/admin/${selectedUser.id}/suspend`,
+          API_ENDPOINTS.ADMIN.SUSPEND_USER(selectedUser.id),
           null,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setMessage("User suspended successfully.");
       } else if (modalAction === "activate") {
         await axios.put(
-          `http://localhost:8080/api/admin/${selectedUser.id}/activate`,
+          API_ENDPOINTS.ADMIN.ACTIVATE_USER(selectedUser.id),
           null,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setMessage("User activated successfully.");
       } else if (modalAction === "delete") {
-        await axios.delete(
-          `http://localhost:8080/api/admin/user/${selectedUser.id}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await axios.delete(API_ENDPOINTS.ADMIN.DELETE_USER(selectedUser.id), {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         setMessage("User deleted successfully.");
       }
 
@@ -105,11 +130,9 @@ function UserManagement() {
       setMessage("Failed to perform action. Please try again.");
       setAlertType("danger");
     } finally {
-      setTimeout(() => {
-        setMessage("");
-        setAlertType("");
-      }, 5000);
-      closeModal();
+      setActionLoading(false);
+      closeModal(); // Ensure modal closes immediately
+      resetMessage();
     }
   };
 
@@ -117,15 +140,9 @@ function UserManagement() {
     navigate(`/profile/${userId}`);
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, [currentPage, rowsPerPage, searchTerm]);
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  return (
+  return pageLoading ? (
+    <Spinner />
+  ) : (
     <div
       className="container"
       style={{ marginTop: "100px", marginBottom: "100px" }}
@@ -138,6 +155,7 @@ function UserManagement() {
           </div>
         )}
       </div>
+
       <div className="row g-3 mb-3">
         <div className="col-md-6">
           <input
@@ -179,7 +197,13 @@ function UserManagement() {
             </tr>
           </thead>
           <tbody>
-            {users.length > 0 ? (
+            {tableLoading ? (
+              <tr>
+                <td colSpan="7" className="text-center">
+                  <Spinner />
+                </td>
+              </tr>
+            ) : users.length > 0 ? (
               users.map((user) => (
                 <tr key={user.id}>
                   <td>{user.email}</td>
@@ -191,30 +215,34 @@ function UserManagement() {
                   <td>
                     {user.active ? (
                       <button
-                        className="btn btn-warning btn-sm me-2"
+                        className={`btn btn-warning btn-sm me-2 ${
+                          user.role === "ADMIN" ? "disabled" : ""
+                        }`}
                         onClick={() => openModal("suspend", user)}
                       >
-                        Suspend User
+                        Suspend
                       </button>
                     ) : (
                       <button
                         className="btn btn-success btn-sm me-2"
                         onClick={() => openModal("activate", user)}
                       >
-                        Activate User
+                        Activate
                       </button>
                     )}
                     <button
-                      className="btn btn-danger btn-sm me-2"
+                      className={`btn btn-danger btn-sm me-2 ${
+                        user.role === "ADMIN" ? "disabled" : ""
+                      }`}
                       onClick={() => openModal("delete", user)}
                     >
-                      Delete User
+                      Delete
                     </button>
                     <button
                       className="btn btn-primary btn-sm"
                       onClick={() => handleUserDetails(user.id)}
                     >
-                      See Details
+                      Details
                     </button>
                   </td>
                 </tr>
@@ -255,19 +283,21 @@ function UserManagement() {
         </div>
       </div>
 
-      {/* Modal */}
       {showModal && (
-        <div className="modal fade show" style={{ display: "block" }}>
-          <div className="modal-dialog">
+        <div
+          className="modal fade show"
+          style={{
+            display: "block",
+            backdropFilter: "blur(5px)",
+            overflow: "hidden",
+          }}
+        >
+          <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">
                   Confirm{" "}
-                  {modalAction === "delete"
-                    ? "Deletion"
-                    : modalAction === "suspend"
-                    ? "Suspension"
-                    : "Activation"}
+                  {modalAction.charAt(0).toUpperCase() + modalAction.slice(1)}
                 </h5>
                 <button
                   type="button"
@@ -276,22 +306,18 @@ function UserManagement() {
                 ></button>
               </div>
               <div className="modal-body">
-                <p>
-                  Are you sure you want to{" "}
-                  {modalAction === "delete"
-                    ? "delete this user"
-                    : modalAction === "suspend"
-                    ? "suspend this user"
-                    : "activate this user"}
-                  ?
-                </p>
+                <p>Are you sure you want to {modalAction} this user?</p>
               </div>
               <div className="modal-footer">
                 <button className="btn btn-secondary" onClick={closeModal}>
                   Cancel
                 </button>
-                <button className="btn btn-danger" onClick={confirmAction}>
-                  Confirm
+                <button
+                  className="btn btn-danger"
+                  onClick={confirmAction}
+                  disabled={actionLoading}
+                >
+                  {actionLoading ? <Spinner /> : "Confirm"}
                 </button>
               </div>
             </div>

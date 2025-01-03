@@ -4,3 +4,20 @@
   list-style: none;
   box-sizing: border-box;
 }
+
+.modal {
+  overflow-y: auto;
+}
+
+.modal-dialog {
+  max-width: 500px;
+  margin: 1.75rem auto;
+}
+
+.modal-content {
+  border-radius: 8px;
+}
+
+.modal-backdrop {
+  backdrop-filter: blur(5px);
+}

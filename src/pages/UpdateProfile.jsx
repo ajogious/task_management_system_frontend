@@ -1,16 +1,20 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
+import Spinner from "../components/Spinner";
+import API_ENDPOINTS from "../services/API_ENDPOINTS";
 
 const UpdateProfile = ({ setUserImage }) => {
   const { userId } = useParams();
   const [userDetails, setUserDetails] = useState({});
   const [avatar, setAvatar] = useState(null);
   const [currentImage, setCurrentImage] = useState(null);
-  const [message, setMessage] = useState("");
-  const [alertType, setAlertType] = useState("");
+  const [feedback, setFeedback] = useState({ message: "", type: "" });
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const fileInputRef = useRef();
+
+  const SERVER_URL = "http://localhost:8080";
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -22,98 +26,87 @@ const UpdateProfile = ({ setUserImage }) => {
 
       try {
         const response = await axios.get(
-          `http://localhost:8080/api/users/user/${userId}`,
+          API_ENDPOINTS.USER.USER_PROFILE(userId),
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        setUserDetails(response.data);
-        if (response.data.image) {
-          const serverUrl = "http://localhost:8080/";
-          const fileUrl = `${serverUrl}${response.data.image.replace(
-            "\\",
-            "/"
-          )}`;
-          setCurrentImage(fileUrl);
+        const userData = response.data;
+        setUserDetails(userData);
+        if (userData.image) {
+          setCurrentImage(`${SERVER_URL}/${userData.image.replace("\\", "/")}`);
         }
+        setLoading(false);
       } catch (error) {
-        setMessage("Failed to fetch user details.");
-        setAlertType("danger");
+        setFeedback({
+          message: "Failed to fetch user details.",
+          type: "danger",
+        });
+        setLoading(false);
       }
     };
 
     fetchUserDetails();
-  }, [navigate, userId]);
+  }, [userId, navigate]);
 
   const handleUpdate = async (e) => {
     e.preventDefault();
-
-    const formData = new FormData();
-    const user = {
-      fullName: userDetails.fullName,
-      username: userDetails.username,
-      email: userDetails.email,
-      phoneNo: userDetails.phoneNo,
-      address: userDetails.address,
-      gender: userDetails.gender,
-    };
-    formData.append(
-      "user",
-      new Blob([JSON.stringify(user)], { type: "application/json" })
-    );
-
-    if (avatar) {
-      formData.append("file", avatar);
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      navigate("/login");
+      return;
     }
 
+    const formData = new FormData();
+    formData.append(
+      "user",
+      new Blob([JSON.stringify(userDetails)], { type: "application/json" })
+    );
+    if (avatar) formData.append("file", avatar);
+
     try {
-      const token = localStorage.getItem("authToken");
       const response = await axios.put(
-        `http://localhost:8080/api/users/update-profile/${userId}`,
+        API_ENDPOINTS.USER.UPDATE_PROFILE(userId),
         formData,
         {
           headers: {
-            "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
           },
         }
       );
 
       const updatedImagePath = response.data.imagePath;
-      const serverUrl = "http://localhost:8080/";
-      const updatedUserDetails = {
-        ...userDetails,
-        image: updatedImagePath,
-      };
-      localStorage.setItem("userDetails", JSON.stringify(updatedUserDetails));
-
-      // Updating the user image in the parent component
-      setUserImage(`${serverUrl}${updatedImagePath}`);
-
-      setMessage("Profile updated successfully.");
-      setAlertType("success");
+      setUserImage(`${SERVER_URL}/${updatedImagePath}`);
+      setFeedback({
+        message: "Profile updated successfully.",
+        type: "success",
+      });
       setTimeout(() => navigate(`/profile/${userId}`), 2000);
     } catch (error) {
-      const backendMessage =
-        error.response?.data?.message || "An error occurred during update.";
-      setAlertType("danger");
-      setMessage(backendMessage);
+      setFeedback({
+        message:
+          error.response?.data?.message || "An error occurred during update.",
+        type: "danger",
+      });
     }
   };
 
   const handleImagePreview = (e) => {
     const file = e.target.files[0];
-    if (file) {
+    if (file && file.type.startsWith("image/")) {
       const reader = new FileReader();
-      reader.onload = (event) => {
-        const imagePreview = document.getElementById("image-preview");
-        imagePreview.src = event.target.result;
-        imagePreview.style.display = "block";
-      };
+      reader.onload = (event) => setAvatar(file);
       reader.readAsDataURL(file);
-      setAvatar(file);
+    } else {
+      setFeedback({
+        message: "Invalid file type. Please upload a valid image.",
+        type: "danger",
+      });
     }
   };
+
+  if (loading) return <Spinner />;
 
   return (
     <div
@@ -122,96 +115,52 @@ const UpdateProfile = ({ setUserImage }) => {
     >
       <h2>Update Profile</h2>
       <form onSubmit={handleUpdate} className="card p-4 shadow mb-5">
-        <div className="mb-3">
-          <label>Full Name:</label>
-          <input
-            type="text"
-            className="form-control"
-            value={userDetails.fullName || ""}
-            onChange={(e) =>
-              setUserDetails({ ...userDetails, fullName: e.target.value })
-            }
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label>Username:</label>
-          <input
-            type="text"
-            className="form-control"
-            value={userDetails.username || ""}
-            onChange={(e) =>
-              setUserDetails({ ...userDetails, username: e.target.value })
-            }
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label>Email:</label>
-          <input
-            type="email"
-            className="form-control"
-            value={userDetails.email || ""}
-            onChange={(e) =>
-              setUserDetails({ ...userDetails, email: e.target.value })
-            }
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label>Phone No:</label>
-          <input
-            type="tel"
-            className="form-control"
-            value={userDetails.phoneNo || ""}
-            onChange={(e) =>
-              setUserDetails({ ...userDetails, phoneNo: e.target.value })
-            }
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label>Home Address:</label>
-          <input
-            type="text"
-            className="form-control"
-            value={userDetails.address || ""}
-            onChange={(e) =>
-              setUserDetails({ ...userDetails, address: e.target.value })
-            }
-            required
-          />
-        </div>
+        {["fullName", "username", "email", "phoneNo", "address"].map(
+          (field) => (
+            <div className="mb-3" key={field}>
+              <label>{field.charAt(0).toUpperCase() + field.slice(1)}:</label>
+              <input
+                type={field === "email" ? "email" : "text"}
+                className="form-control"
+                value={userDetails[field] || ""}
+                onChange={(e) =>
+                  setUserDetails({ ...userDetails, [field]: e.target.value })
+                }
+                required
+              />
+            </div>
+          )
+        )}
         <div className="mb-3">
           <label>Gender:</label>
           <select
             className="form-select"
-            value={userDetails.gender || "Male"}
+            value={userDetails.gender || ""}
             onChange={(e) =>
               setUserDetails({ ...userDetails, gender: e.target.value })
             }
             required
           >
+            <option value="">Select Gender</option>
             <option value="Male">Male</option>
             <option value="Female">Female</option>
             <option value="Other">Other</option>
           </select>
         </div>
         <div className="mb-3">
-          <label htmlFor="avatar-upload" className="custom-file-label">
-            Upload Image
-          </label>
+          <label htmlFor="avatar-upload">Upload Image:</label>
           <input
-            className="form-control"
             type="file"
             id="avatar-upload"
+            className="form-control"
             accept="image/png, image/jpeg"
             onChange={handleImagePreview}
             ref={fileInputRef}
           />
+        </div>
+        {currentImage && (
           <img
-            id="image-preview"
-            src={currentImage || "#"}
+            src={currentImage}
             alt="Avatar Preview"
             className="img-fluid mt-2"
             style={{
@@ -221,12 +170,14 @@ const UpdateProfile = ({ setUserImage }) => {
               border: "1px solid #ddd",
             }}
           />
-        </div>
-        <button type="submit" className="btn btn-primary">
+        )}
+        <button type="submit" className="btn btn-primary mt-3">
           Update Profile
         </button>
-        {message && (
-          <div className={`mt-2 alert alert-${alertType}`}>{message}</div>
+        {feedback.message && (
+          <div className={`mt-2 alert alert-${feedback.type}`}>
+            {feedback.message}
+          </div>
         )}
       </form>
     </div>

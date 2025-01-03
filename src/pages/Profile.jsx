@@ -1,18 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
-import "./Profile.css"; // Import the CSS file for styling
+import "./Profile.css";
+import Spinner from "../components/Spinner";
+import API_ENDPOINTS from "../services/API_ENDPOINTS";
 
 function Profile({ setUserImage }) {
   const { userId } = useParams();
-  console.log(userId);
-
   const navigate = useNavigate();
   const [userDetails, setUserDetails] = useState(null);
   const [userImage, setUserImageState] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
-  const [alertType, setAlertType] = useState("");
+  const [alert, setAlert] = useState({ message: "", type: "" });
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -24,44 +23,39 @@ function Profile({ setUserImage }) {
 
       try {
         const response = await axios.get(
-          `http://localhost:8080/api/users/user/${userId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
+          API_ENDPOINTS.USER.USER_PROFILE(userId),
+          { headers: { Authorization: `Bearer ${token}` } }
         );
+        const userData = response.data;
+        console.log(userData);
 
-        setUserDetails(response.data);
-        console.log(response.data);
+        setUserDetails(userData);
 
-        if (response.data.image) {
+        if (userData.image) {
           const serverUrl = "http://localhost:8080/";
-          const fileUrl = `${serverUrl}${response.data.image.replace(
-            "\\",
-            "/"
-          )}`;
+          const fileUrl = `${serverUrl}${userData.image.replace(/\\/g, "/")}`;
           setUserImageState(fileUrl);
           setUserImage(fileUrl);
         }
-
         setLoading(false);
       } catch (error) {
-        setMessage("Failed to fetch user details:");
-        setAlertType("danger");
-        navigate("/login");
+        setAlert({
+          message: "Failed to fetch user details. Please try again.",
+          type: "danger",
+        });
+        setLoading(false);
       }
     };
 
     fetchUserDetails();
   }, [userId, navigate, setUserImage]);
 
-  if (loading) {
-    return <div className="loading">Loading...</div>;
-  }
+  if (loading) return <Spinner />;
 
   if (!userDetails) {
     return (
-      <div className={`alert alert-${alertType} mt-3`}>
-        No user details available.
+      <div className={`alert alert-${alert.type} mt-3`}>
+        {alert.message || "No user details available."}
       </div>
     );
   }
@@ -92,6 +86,9 @@ function Profile({ setUserImage }) {
                 {userDetails.fullName || "User Name"}
               </h3>
               <p>
+                <strong>Username:</strong> {userDetails.username}
+              </p>
+              <p>
                 <strong>Email:</strong> {userDetails.email}
               </p>
               <p>
@@ -115,13 +112,6 @@ function Profile({ setUserImage }) {
                   <strong>Last Updated:</strong>{" "}
                   {new Date(userDetails.updated).toLocaleString()}
                 </p>
-              )}
-              {userDetails.stats && (
-                <div className="profile-stats">
-                  <h4>Task Stats</h4>
-                  <p>Total Tasks: {userDetails.stats.totalTasks}</p>
-                  <p>Completed Tasks: {userDetails.stats.completedTasks}</p>
-                </div>
               )}
             </div>
           </div>

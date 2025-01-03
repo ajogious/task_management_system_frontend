@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import Spinner from "../components/Spinner";
+import API_ENDPOINTS from "../services/API_ENDPOINTS";
 
 function ForgottenPassword() {
   const [email, setEmail] = useState("");
@@ -24,7 +26,7 @@ function ForgottenPassword() {
     try {
       setLoading(true);
       const response = await axios.post(
-        "http://localhost:8080/api/auth/forgot-password",
+        API_ENDPOINTS.AUTH.FORGOT_PASSWORD,
         { email },
         { headers: { "Content-Type": "application/json" } }
       );

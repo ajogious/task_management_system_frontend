@@ -17,8 +17,9 @@ const Home = () => {
     <div className="home">
       <div className="wrapper d-flex vh-100 justify-content-center align-items-center">
         <div className="box text-center col-10 col-md-8 col-lg-6">
+          <h3>{getGreeting()}!</h3>
           <h1 className="mb-4">
-            {getGreeting()}, Welcome to Our Task Management System
+            Welcome to A3Tech Academy Task Management System
           </h1>
           <p
             className="mb-4"

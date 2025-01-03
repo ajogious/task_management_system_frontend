@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import axios from "axios";
+import Spinner from "../components/Spinner";
+import API_ENDPOINTS from "../services/API_ENDPOINTS";
 
 function UpdateTask() {
-  const { taskId } = useParams(); // Get taskId from the URL
-  console.log(taskId);
-
+  const { taskId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
 
   const taskFromState = location.state?.task;
   const userId = location.state?.userId;
-  console.log(userId);
 
   const [title, setTitle] = useState(taskFromState?.title || "");
   const [description, setDescription] = useState(
@@ -22,19 +21,18 @@ function UpdateTask() {
   const [message, setMessage] = useState("");
   const [alertType, setAlertType] = useState("");
 
+  const getAuthToken = () => localStorage.getItem("authToken");
+
   useEffect(() => {
-    if (!taskFromState) {
+    if (!taskFromState && userId && taskId) {
       const fetchTaskDetails = async () => {
-        const token = localStorage.getItem("authToken");
-
         try {
+          setLoading(true);
+          const token = getAuthToken();
           const response = await axios.get(
-            `http://localhost:8080/api/tasks/user/${userId}/tasks/${taskId}`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
+            API_ENDPOINTS.TASKS.UPDATE_TASK(taskId),
+            { headers: { Authorization: `Bearer ${token}` } }
           );
-
           const taskData = response.data;
           setTitle(taskData.title);
           setDescription(taskData.description);
@@ -42,6 +40,8 @@ function UpdateTask() {
         } catch (error) {
           setMessage("Failed to fetch task details.");
           setAlertType("danger");
+        } finally {
+          setLoading(false);
         }
       };
 
@@ -52,13 +52,13 @@ function UpdateTask() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const token = localStorage.getItem("authToken");
     const taskData = { title, description, status };
+    const token = getAuthToken();
 
     try {
       setLoading(true);
       await axios.put(
-        `http://localhost:8080/api/tasks/user/${userId}/tasks/${taskId}`,
+        API_ENDPOINTS.TASKS.UPDATE_TASK(userId, taskId),
         taskData,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -69,11 +69,6 @@ function UpdateTask() {
       setAlertType("success");
 
       setTimeout(() => {
-        setMessage("");
-        setAlertType("");
-      }, 5000);
-
-      setTimeout(() => {
         navigate(`/view-tasks/${userId}`);
       }, 1000);
     } catch (error) {
@@ -82,11 +77,6 @@ function UpdateTask() {
           "Failed to update task. Please try again."
       );
       setAlertType("danger");
-
-      setTimeout(() => {
-        setMessage("");
-        setAlertType("");
-      }, 5000);
     } finally {
       setLoading(false);
     }
@@ -98,6 +88,7 @@ function UpdateTask() {
       style={{ marginTop: "100px", marginBottom: "70px" }}
     >
       <h2>Update Task</h2>
+      {loading && <Spinner />}
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
           <label htmlFor="title" className="form-label">
@@ -110,6 +101,7 @@ function UpdateTask() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
+            placeholder="Enter task title"
           />
         </div>
         <div className="mb-3">
@@ -123,6 +115,7 @@ function UpdateTask() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             required
+            placeholder="Enter task description"
           ></textarea>
         </div>
         <div className="mb-3">

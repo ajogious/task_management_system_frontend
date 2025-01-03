@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import Spinner from "../components/Spinner";
+import API_ENDPOINTS from "../services/API_ENDPOINTS";
 
 function UserDashboard() {
   const [taskStats, setTaskStats] = useState({
@@ -36,7 +38,7 @@ function UserDashboard() {
 
       try {
         const response = await axios.get(
-          `http://localhost:8080/api/dashboard/stats/${userDetails.id}`,
+          API_ENDPOINTS.DASHBOARD.STATS(userDetails.id),
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -53,15 +55,16 @@ function UserDashboard() {
   }, [userDetails, navigate]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <Spinner />;
   }
 
   if (!userDetails) {
     return null;
   }
 
-  const firstName = userDetails.fullName?.split(" ")[0] || "User";
-  const gender = userDetails.gender || "Unknown";
+  const { fullName, gender } = userDetails;
+  const firstName = fullName?.split(" ")[0] || "User";
+  const formattedGender = gender === "Male" ? "Mr." : "Ms.";
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -70,29 +73,22 @@ function UserDashboard() {
     return "Good Evening";
   };
 
-  function TaskCard({ title, count }) {
-    return (
-      <div className="col-md-3 col-12">
-        <div className="card border-4 border-primary p-3">
-          <h4 className="card-title">{title}</h4>
-          <hr />
-          <h1 className="card-text">{count}</h1>
-        </div>
+  const TaskCard = ({ title, count }) => (
+    <div className="col-md-3 col-12">
+      <div className="card border-4 border-primary p-3">
+        <h4 className="card-title">{title}</h4>
+        <hr />
+        <h1 className="card-text">{count}</h1>
       </div>
-    );
-  }
+    </div>
+  );
 
   return (
     <div className="container">
-      <div
-        className="UserDashboard"
-        style={{
-          marginTop: "100px",
-        }}
-      >
+      <div className="UserDashboard" style={{ marginTop: "100px" }}>
         <h2>User Dashboard</h2>
         <div className="display-6" style={{ fontSize: "18px" }}>
-          {getGreeting()} {gender === "Male" ? "Mr." : "Ms."} {firstName}!
+          {getGreeting()} {formattedGender} {firstName}!
         </div>
         <h4 className="mt-3 text-center">Task Summaries</h4>
         <div className="row justify-content-center text-center gap-4 mt-4">

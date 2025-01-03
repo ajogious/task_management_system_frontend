@@ -34,18 +34,6 @@
   margin-bottom: 20px;
 }
 
-.profile-stats h4 {
-  margin-top: 20px;
-  font-size: 1.4rem;
-  color: #28a745;
-}
-
-.profile-stats p {
-  margin: 5px 0;
-  font-size: 1.1rem;
-  color: #555;
-}
-
 .loading {
   font-size: 1.5rem;
   text-align: center;

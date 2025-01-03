@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import Spinner from "../components/Spinner";
 import axios from "axios";
+import API_ENDPOINTS from "../services/API_ENDPOINTS";
 
 function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -29,7 +31,7 @@ function ResetPassword() {
     try {
       setLoading(true);
       const response = await axios.post(
-        "http://localhost:8080/api/auth/reset-password",
+        API_ENDPOINTS.AUTH.RESET_PASSWORD,
         { token, newPassword },
         { headers: { "Content-Type": "application/json" } }
       );

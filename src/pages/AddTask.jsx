@@ -1,15 +1,25 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import API_ENDPOINTS from "../services/API_ENDPOINTS";
 
 function AddTask() {
   const navigate = useNavigate();
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [status, setStatus] = useState("PENDING");
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    status: "PENDING",
+  });
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
-  const [alertType, setAlertType] = useState("");
+  const [alert, setAlert] = useState({ message: "", type: "" });
+
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [id]: value,
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,23 +31,19 @@ function AddTask() {
     const userId = userDetails?.id;
 
     if (!userId) {
-      setMessage("User not authenticated. Please login.");
-      setAlertType("danger");
+      setAlert({
+        message: "User not authenticated. Please login.",
+        type: "danger",
+      });
       return;
     }
 
-    const taskData = {
-      title,
-      description,
-      status,
-      userId,
-    };
-
     try {
       setLoading(true);
-      const response = await axios.post(
-        "http://localhost:8080/api/tasks",
-        taskData,
+
+      await axios.post(
+        API_ENDPOINTS.TASKS.POST_TASKS,
+        { ...formData, userId },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -45,32 +51,23 @@ function AddTask() {
         }
       );
 
-      setMessage("Task added successfully!");
-      setAlertType("success");
-      setTimeout(() => {
-        setMessage("");
-        setAlertType("");
-      }, 5000);
+      setAlert({ message: "Task added successfully!", type: "success" });
 
       setTimeout(() => {
         navigate(`/view-tasks/${userId}`);
       }, 1000);
     } catch (error) {
-      setMessage(
-        error.response?.data?.message || "Failed to add task. Please try again."
-      );
-      setAlertType("danger");
-
-      setTimeout(() => {
-        setMessage("");
-        setAlertType("");
-      }, 5000);
+      setAlert({
+        message:
+          error.response?.data?.message ||
+          "Failed to add task. Please try again.",
+        type: "danger",
+      });
     } finally {
       setLoading(false);
 
       setTimeout(() => {
-        setMessage("");
-        setAlertType("");
+        setAlert({ message: "", type: "" });
       }, 5000);
     }
   };
@@ -90,8 +87,8 @@ function AddTask() {
             type="text"
             className="form-control"
             id="title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            value={formData.title}
+            onChange={handleChange}
             required
           />
         </div>
@@ -103,8 +100,8 @@ function AddTask() {
             className="form-control"
             id="description"
             rows="4"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            value={formData.description}
+            onChange={handleChange}
             required
           ></textarea>
         </div>
@@ -115,8 +112,8 @@ function AddTask() {
           <select
             className="form-control"
             id="status"
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
+            value={formData.status}
+            onChange={handleChange}
           >
             <option value="PENDING">Pending</option>
             <option value="COMPLETED">Completed</option>
@@ -127,10 +124,9 @@ function AddTask() {
             {loading ? "Adding..." : "Add Task"}
           </button>
         </div>
-        {/* Alert Messages */}
-        {message && (
-          <div className={`alert alert-${alertType} mt-3`} role="alert">
-            {message}
+        {alert.message && (
+          <div className={`alert alert-${alert.type} mt-3`} role="alert">
+            {alert.message}
           </div>
         )}
       </form>

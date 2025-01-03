@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import API_ENDPOINTS from "../services/API_ENDPOINTS";
 
 function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [credentials, setCredentials] = useState({ email: "", password: "" });
   const [message, setMessage] = useState("");
   const [alertType, setAlertType] = useState("");
   const [loading, setLoading] = useState(false);
@@ -16,41 +16,43 @@ function Login() {
     localStorage.clear();
   }, []);
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setCredentials({ ...credentials, [name]: value });
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
 
+    const { email, password } = credentials;
     if (!email.trim() || !password.trim()) {
       setMessage("Both fields are required.");
       setAlertType("danger");
       return;
     }
 
-    const user = { email, password };
-
     try {
       setLoading(true);
       const response = await axios.post(
-        "http://localhost:8080/api/auth/login",
-        user,
+        API_ENDPOINTS.AUTH.LOGIN,
+        { email, password },
         { headers: { "Content-Type": "application/json" } }
       );
 
       const { token, user: userDetails, message } = response.data;
 
-      // Save token and user details to localStorage
       localStorage.setItem("authToken", token);
       localStorage.setItem("userDetails", JSON.stringify(userDetails));
 
       setAlertType("success");
       setMessage(message);
 
-      // Redirect to Dashboard after successful login
       setTimeout(() => navigate("/dashboard"), 1000);
     } catch (error) {
-      const backendMessage =
+      const errorMessage =
         error.response?.data?.message || "An error occurred during login.";
       setAlertType("danger");
-      setMessage(backendMessage);
+      setMessage(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -68,8 +70,9 @@ function Login() {
           <input
             type="text"
             className="form-control"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            name="email"
+            value={credentials.email}
+            onChange={handleChange}
             required
             placeholder="Enter your email..."
           />
@@ -80,8 +83,9 @@ function Login() {
             <input
               type={showPassword ? "text" : "password"}
               className="form-control"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              name="password"
+              value={credentials.password}
+              onChange={handleChange}
               maxLength={8}
               minLength={4}
               required

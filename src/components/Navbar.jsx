@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import API_ENDPOINTS from "../services/API_ENDPOINTS";
 
 function Navbar({ setMessage, setAlertType }) {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ function Navbar({ setMessage, setAlertType }) {
 
     try {
       await axios.post(
-        "http://localhost:8080/api/auth/logout",
+        API_ENDPOINTS.AUTH.LOGOUT,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -43,7 +44,9 @@ function Navbar({ setMessage, setAlertType }) {
   useEffect(() => {
     const updateImageFromStorage = () => {
       if (userDetails?.image) {
-        setUserImage(`http://localhost:8080/${userDetails.image}`);
+        setUserImage(
+          `http://localhost:8080/${userDetails.image.replace(/\\/g, "/")}`
+        );
       }
     };
 
@@ -60,16 +63,17 @@ function Navbar({ setMessage, setAlertType }) {
     >
       <div className="container">
         <Link className="navbar-brand" to="/">
-          Task Management System
+          <img
+            src="logo_brand.png"
+            alt=""
+            style={{
+              width: "40px",
+              borderRadius: "50%",
+            }}
+          />
         </Link>
-        <a
-          className="nav-link text-light me-2"
-          href="mailto:a3techacademy@gmail.com"
-        >
-          Contact Admin 1
-        </a>
         <a className="nav-link text-light" href="mailto:ajogious@gmail.com">
-          Contact Admin 2
+          Contact Admin
         </a>
         <button
           className="navbar-toggler"

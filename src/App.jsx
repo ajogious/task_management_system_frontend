@@ -17,6 +17,7 @@ import Logout from "./components/Logout";
 import Message from "./components/Message";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ResetPassword from "./pages/ResetPassword";
+import Footer from "./components/Footer";
 import "./App.css";
 
 function App() {
@@ -95,6 +96,7 @@ function App() {
           />
         ))}
       </Routes>
+      <Footer />
     </div>
   );
 }
