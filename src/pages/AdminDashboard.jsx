@@ -88,7 +88,6 @@ function AdminDashboard() {
         <br />
         <br />
         <br />
-        <br />
         <h2 className="mb-4">Admin Dashboard</h2>
         <h4 className="text-center mb-4">Task Management Analytics</h4>
         <div className="row justify-content-center">
@@ -119,6 +118,9 @@ function AdminDashboard() {
             borderClass="warning"
           />
         </div>
+        <br />
+        <br />
+        <br />
       </div>
     </div>
   );

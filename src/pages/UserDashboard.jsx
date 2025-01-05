@@ -90,7 +90,6 @@ function UserDashboard() {
         <br />
         <br />
         <br />
-        <br />
         <h2 className="mb-4">User Dashboard</h2>
         <div className="display-6 mb-4" style={{ fontSize: "18px" }}>
           {getGreeting()} {formattedGender} {firstName}!
@@ -102,6 +101,9 @@ function UserDashboard() {
           <TaskCard title="Pending Tasks" count={taskStats.pendingTasks} />
         </div>
       </div>
+      <br />
+      <br />
+      <br />
     </div>
   );
 }
