@@ -12,14 +12,20 @@ const Register = () => {
     phoneNo: "",
     address: "",
     gender: "Male",
+    role: "USER", // Default role
     password: "",
     avatar: null,
   });
   const [message, setMessage] = useState("");
   const [alertType, setAlertType] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const fileInputRef = useRef();
+
+  useEffect(() => {
+    localStorage.clear();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -69,6 +75,7 @@ const Register = () => {
     formPayload.append("file", avatar);
 
     try {
+      setLoading(true);
       const response = await axios.post(
         API_ENDPOINTS.AUTH.REGISTER,
         formPayload,
@@ -100,6 +107,7 @@ const Register = () => {
         phoneNo: "",
         address: "",
         gender: "Male",
+        role: "USER",
         password: "",
         avatar: null,
       });
@@ -107,6 +115,7 @@ const Register = () => {
       const imagePreview = document.getElementById("image-preview");
       imagePreview.src = "#";
       imagePreview.style.display = "none";
+      setLoading(false);
     }
   };
 
@@ -150,6 +159,20 @@ const Register = () => {
             <option value="Male">Male</option>
             <option value="Female">Female</option>
             <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div className="mb-3">
+          <label>Role:</label>
+          <select
+            className="form-select"
+            name="role"
+            value={formData.role}
+            onChange={handleInputChange}
+            required
+          >
+            <option value="USER">USER</option>
+            <option value="ADMIN">ADMIN</option>
           </select>
         </div>
 
@@ -205,7 +228,7 @@ const Register = () => {
         </div>
 
         <button type="submit" className="btn btn-primary">
-          Register
+          {loading ? "Submitting..." : "Register"}
         </button>
 
         {message && (

@@ -18,7 +18,7 @@ function UserManagement() {
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
-  const [modalAction, setModalAction] = useState(null);
+  const [modalAction, setModalAction] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -30,11 +30,8 @@ function UserManagement() {
   };
 
   const fetchUsers = async (isInitialLoad = false) => {
-    if (isInitialLoad) {
-      setPageLoading(true);
-    } else {
-      setTableLoading(true);
-    }
+    if (isInitialLoad) setPageLoading(true);
+    else setTableLoading(true);
 
     try {
       const token = localStorage.getItem("authToken");
@@ -50,21 +47,7 @@ function UserManagement() {
       const users = response.data.content || [];
       const totalPages = response.data.totalPages || 1;
 
-      const statsPromises = users.map((user) =>
-        axios
-          .get(API_ENDPOINTS.DASHBOARD.STATS(user.id), {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          .then((res) => ({ ...user, stats: res.data }))
-          .catch(() => ({
-            ...user,
-            stats: { totalTasks: 0, completedTasks: 0, pendingTasks: 0 },
-          }))
-      );
-
-      const usersWithStats = await Promise.all(statsPromises);
-
-      setUsers(usersWithStats);
+      setUsers(users);
       setTotalPages(totalPages);
     } catch (error) {
       setMessage("Failed to fetch users. Please try again.");
@@ -91,13 +74,13 @@ function UserManagement() {
   };
 
   const closeModal = () => {
-    setModalAction(null);
+    setModalAction("");
     setSelectedUser(null);
     setShowModal(false);
   };
 
   const confirmAction = async () => {
-    if (!selectedUser) return;
+    if (!selectedUser || !modalAction) return;
 
     const token = localStorage.getItem("authToken");
     setActionLoading(true);
@@ -107,14 +90,18 @@ function UserManagement() {
         await axios.put(
           API_ENDPOINTS.ADMIN.SUSPEND_USER(selectedUser.id),
           null,
-          { headers: { Authorization: `Bearer ${token}` } }
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
         );
         setMessage("User suspended successfully.");
       } else if (modalAction === "activate") {
         await axios.put(
           API_ENDPOINTS.ADMIN.ACTIVATE_USER(selectedUser.id),
           null,
-          { headers: { Authorization: `Bearer ${token}` } }
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
         );
         setMessage("User activated successfully.");
       } else if (modalAction === "delete") {
@@ -123,7 +110,6 @@ function UserManagement() {
         });
         setMessage("User deleted successfully.");
       }
-
       setAlertType("success");
       fetchUsers();
     } catch (error) {
@@ -131,7 +117,7 @@ function UserManagement() {
       setAlertType("danger");
     } finally {
       setActionLoading(false);
-      closeModal(); // Ensure modal closes immediately
+      closeModal();
       resetMessage();
     }
   };
@@ -150,7 +136,7 @@ function UserManagement() {
       <div className="d-flex justify-content-between align-items-center">
         <h2>User Management</h2>
         {message && (
-          <div className={`alert alert-${alertType} mt-3`} role="alert">
+          <div className={`alert alert-${alertType}`} role="alert">
             {message}
           </div>
         )}
@@ -190,16 +176,13 @@ function UserManagement() {
               <th>Email</th>
               <th>Username</th>
               <th>Phone No</th>
-              <th>Total Tasks</th>
-              <th>Completed Tasks</th>
-              <th>Pending Tasks</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {tableLoading ? (
               <tr>
-                <td colSpan="7" className="text-center">
+                <td colSpan="4" className="text-center">
                   <Spinner />
                 </td>
               </tr>
@@ -209,15 +192,10 @@ function UserManagement() {
                   <td>{user.email}</td>
                   <td>{user.username}</td>
                   <td>{user.phoneNo}</td>
-                  <td>{user.stats?.totalTasks || 0}</td>
-                  <td>{user.stats?.completedTasks || 0}</td>
-                  <td>{user.stats?.pendingTasks || 0}</td>
                   <td>
                     {user.active ? (
                       <button
-                        className={`btn btn-warning btn-sm me-2 ${
-                          user.role === "ADMIN" ? "disabled" : ""
-                        }`}
+                        className="btn btn-warning btn-sm me-2"
                         onClick={() => openModal("suspend", user)}
                       >
                         Suspend
@@ -231,9 +209,7 @@ function UserManagement() {
                       </button>
                     )}
                     <button
-                      className={`btn btn-danger btn-sm me-2 ${
-                        user.role === "ADMIN" ? "disabled" : ""
-                      }`}
+                      className="btn btn-danger btn-sm me-2"
                       onClick={() => openModal("delete", user)}
                     >
                       Delete
@@ -249,7 +225,7 @@ function UserManagement() {
               ))
             ) : (
               <tr>
-                <td colSpan="7" className="text-center">
+                <td colSpan="4" className="text-center">
                   No users found.
                 </td>
               </tr>
@@ -283,21 +259,18 @@ function UserManagement() {
         </div>
       </div>
 
+      {/* Modal */}
       {showModal && (
         <div
           className="modal fade show"
-          style={{
-            display: "block",
-            backdropFilter: "blur(5px)",
-            overflow: "hidden",
-          }}
+          style={{ display: "block", backdropFilter: "blur(5px)" }}
         >
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">
-                  Confirm{" "}
-                  {modalAction.charAt(0).toUpperCase() + modalAction.slice(1)}
+                  {modalAction.charAt(0).toUpperCase() + modalAction.slice(1)}{" "}
+                  User
                 </h5>
                 <button
                   type="button"
@@ -307,6 +280,12 @@ function UserManagement() {
               </div>
               <div className="modal-body">
                 <p>Are you sure you want to {modalAction} this user?</p>
+                <p>
+                  <strong>Email:</strong> {selectedUser.email}
+                </p>
+                <p>
+                  <strong>Username:</strong> {selectedUser.username}
+                </p>
               </div>
               <div className="modal-footer">
                 <button className="btn btn-secondary" onClick={closeModal}>
