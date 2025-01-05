@@ -192,18 +192,8 @@ const Register = () => {
               maxLength={8}
               minLength={4}
               required
-              placeholder="Enter a password..."
+              placeholder="Enter a password (4-8 characters)..."
             />
-            {formData.password.length < 4 && (
-              <small className="text-danger">
-                Password must be at least 4 characters.
-              </small>
-            )}
-            {formData.password.length > 8 && (
-              <small className="text-danger">
-                Password cannot exceed 8 characters.
-              </small>
-            )}
             <button
               type="button"
               className="btn btn-outline-secondary"
