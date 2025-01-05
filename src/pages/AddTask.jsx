@@ -75,7 +75,7 @@ function AddTask() {
   return (
     <div
       className="container col-lg-6 col-md-8 col-10 d-flex flex-column justify-content-center"
-      style={{ marginTop: "100px", marginBottom: "70px" }}
+      style={{ marginTop: "100px", marginBottom: "140px" }}
     >
       <h2>Add New Task</h2>
       <form onSubmit={handleSubmit}>
