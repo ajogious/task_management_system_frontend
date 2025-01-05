@@ -91,6 +91,22 @@ function Login() {
               required
               placeholder="Enter your password..."
             />
+            {credentials.password.length < 4 && (
+              <small className="text-danger">
+                Password must be at least 4 characters.
+              </small>
+            )}
+            {credentials.password.length > 8 && (
+              <small className="text-danger">
+                Password cannot exceed 8 characters.
+              </small>
+            )}
+            {credentials.password.length >= 4 &&
+              credentials.password.length <= 8 && (
+                <small className="text-success">
+                  Password length looks good!
+                </small>
+              )}
             <button
               type="button"
               className="btn btn-outline-secondary"
