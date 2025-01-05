@@ -68,7 +68,7 @@ function Profile({ setUserImage }) {
           <div className="col-md-4">
             <div className="profile-img">
               <img
-                src={userImage || "avata.png"}
+                src={`/${userImage}` || "/avata.png"}
                 alt="User"
                 className="img-fluid card"
               />

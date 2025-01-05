@@ -118,7 +118,7 @@ function Navbar({ setMessage, setAlertType }) {
                     aria-label="User menu"
                   >
                     <img
-                      src={userImage || "avata.png"}
+                      src={`/${userImage}` || "avata.png"}
                       alt="User"
                       style={{
                         width: "35px",
