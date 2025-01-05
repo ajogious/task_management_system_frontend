@@ -6,6 +6,7 @@ import API_ENDPOINTS from "../services/API_ENDPOINTS";
 function Navbar({ setMessage, setAlertType }) {
   const navigate = useNavigate();
   const [userImage, setUserImage] = useState(null);
+  const BASE_URL = import.meta.env.VITE_APP_API_URL;
 
   const userLogin = () => localStorage.getItem("userDetails");
 
@@ -44,9 +45,7 @@ function Navbar({ setMessage, setAlertType }) {
   useEffect(() => {
     const updateImageFromStorage = () => {
       if (userDetails?.image) {
-        setUserImage(
-          `http://localhost:8080/${userDetails.image.replace(/\\/g, "/")}`
-        );
+        setUserImage(`${BASE_URL}/${userDetails.image.replace(/\\/g, "/")}`);
       }
     };
 
@@ -118,7 +117,7 @@ function Navbar({ setMessage, setAlertType }) {
                     aria-label="User menu"
                   >
                     <img
-                      src={userImage || "avata.png"}
+                      src={userImage || "/avata.png"}
                       alt="User"
                       style={{
                         width: "35px",

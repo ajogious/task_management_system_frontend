@@ -12,6 +12,7 @@ function Profile({ setUserImage }) {
   const [userImage, setUserImageState] = useState(null);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState({ message: "", type: "" });
+  const BASE_URL = import.meta.env.VITE_APP_API_URL;
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -32,7 +33,7 @@ function Profile({ setUserImage }) {
         setUserDetails(userData);
 
         if (userData.image) {
-          const serverUrl = "http://localhost:8080/";
+          const serverUrl = `${BASE_URL}/`;
           const fileUrl = `${serverUrl}${userData.image.replace(/\\/g, "/")}`;
           setUserImageState(fileUrl);
           setUserImage(fileUrl);
