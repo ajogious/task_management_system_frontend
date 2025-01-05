@@ -85,13 +85,12 @@ function UserDashboard() {
   );
 
   return (
-    <div
-      className="container py-5"
-      style={{
-        marginTop: "100px",
-      }}
-    >
+    <div className="container py-5">
       <div className="UserDashboard text-center">
+        <br />
+        <br />
+        <br />
+        <br />
         <h2 className="mb-4">User Dashboard</h2>
         <div className="display-6 mb-4" style={{ fontSize: "18px" }}>
           {getGreeting()} {formattedGender} {firstName}!
