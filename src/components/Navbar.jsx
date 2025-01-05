@@ -64,7 +64,7 @@ function Navbar({ setMessage, setAlertType }) {
       <div className="container">
         <Link className="navbar-brand" to="/">
           <img
-            src="logo_brand.png"
+            src="/logo_brand.png"
             alt=""
             style={{
               width: "40px",
@@ -118,7 +118,7 @@ function Navbar({ setMessage, setAlertType }) {
                     aria-label="User menu"
                   >
                     <img
-                      src={`/${userImage}` || "avata.png"}
+                      src={userImage || "avata.png"}
                       alt="User"
                       style={{
                         width: "35px",
