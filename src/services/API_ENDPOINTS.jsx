@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:8080/api";
+const BASE_URL = import.meta.env.VITE_APP_API_URL;
 
 const API_ENDPOINTS = {
   AUTH: {
