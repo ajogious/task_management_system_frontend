@@ -23,7 +23,6 @@ function UserDashboard() {
     }
 
     setUserDetails(JSON.parse(storedUserDetails));
-    setLoading(false);
   }, [navigate]);
 
   useEffect(() => {
@@ -48,6 +47,8 @@ function UserDashboard() {
         if (error.response?.status === 403) {
           navigate("/login");
         }
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -74,8 +75,8 @@ function UserDashboard() {
   };
 
   const TaskCard = ({ title, count }) => (
-    <div className="col-md-3 col-12">
-      <div className="card border-4 border-primary p-3">
+    <div className="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
+      <div className="card border-4 border-primary p-3 shadow-sm">
         <h4 className="card-title">{title}</h4>
         <hr />
         <h1 className="card-text">{count}</h1>
@@ -84,14 +85,14 @@ function UserDashboard() {
   );
 
   return (
-    <div className="container">
-      <div className="UserDashboard" style={{ marginTop: "100px" }}>
-        <h2>User Dashboard</h2>
-        <div className="display-6" style={{ fontSize: "18px" }}>
+    <div className="container py-5">
+      <div className="UserDashboard text-center">
+        <h2 className="mb-4">User Dashboard</h2>
+        <div className="display-6 mb-4" style={{ fontSize: "18px" }}>
           {getGreeting()} {formattedGender} {firstName}!
         </div>
-        <h4 className="mt-3 text-center">Task Summaries</h4>
-        <div className="row justify-content-center text-center gap-4 mt-4">
+        <h4 className="text-center mb-4">Task Summaries</h4>
+        <div className="row justify-content-center">
           <TaskCard title="Total Tasks" count={taskStats.totalTasks} />
           <TaskCard title="Completed Tasks" count={taskStats.completedTasks} />
           <TaskCard title="Pending Tasks" count={taskStats.pendingTasks} />

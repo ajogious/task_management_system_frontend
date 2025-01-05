@@ -23,16 +23,14 @@ function AdminDashboard() {
   const getAuthToken = () => localStorage.getItem("authToken");
 
   useEffect(() => {
-    const authenticateUser = () => {
-      const storedUserDetails = localStorage.getItem("userDetails");
-      if (!storedUserDetails) {
-        navigate("/login");
-        return null;
-      }
-      setUserDetails(JSON.parse(storedUserDetails));
-    };
-    authenticateUser();
-    setLoading(false);
+    const storedUserDetails = localStorage.getItem("userDetails");
+
+    if (!storedUserDetails) {
+      navigate("/login");
+      return;
+    }
+
+    setUserDetails(JSON.parse(storedUserDetails));
   }, [navigate]);
 
   useEffect(() => {
@@ -57,6 +55,8 @@ function AdminDashboard() {
         if (error.response?.status === 403) {
           navigate("/login");
         }
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -72,8 +72,8 @@ function AdminDashboard() {
   }
 
   const TaskCard = ({ title, count, subtitle, borderClass = "primary" }) => (
-    <div className="col-md-3 col-12">
-      <div className={`card border-4 border-${borderClass} p-3`}>
+    <div className="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
+      <div className={`card border-4 border-${borderClass} p-3 shadow-sm`}>
         <h4 className="card-title">{title}</h4>
         {subtitle && <p className="card-subtitle text-muted">{subtitle}</p>}
         <hr />
@@ -83,14 +83,11 @@ function AdminDashboard() {
   );
 
   return (
-    <div className="container">
-      <div
-        className="AdminDashboard"
-        style={{ marginTop: "120px", marginBottom: "200px" }}
-      >
-        <h2>Admin Dashboard</h2>
-        <h4 className="mt-3 text-center">Task Management Analytics</h4>
-        <div className="row justify-content-center text-center gap-4 mt-4">
+    <div className="container py-5">
+      <div className="AdminDashboard text-center">
+        <h2 className="mb-4">Admin Dashboard</h2>
+        <h4 className="text-center mb-4">Task Management Analytics</h4>
+        <div className="row justify-content-center">
           <TaskCard title="Total Users" count={taskStats.totalUsers} />
           <TaskCard
             title="Total Monthly Users"
