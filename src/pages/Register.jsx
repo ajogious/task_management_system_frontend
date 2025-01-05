@@ -227,7 +227,7 @@ const Register = () => {
           </div>
         </div>
 
-        <button type="submit" className="btn btn-primary">
+        <button type="submit" className="btn btn-primary" disabled={loading}>
           {loading ? "Submitting..." : "Register"}
         </button>
 
